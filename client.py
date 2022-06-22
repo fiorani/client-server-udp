@@ -7,6 +7,11 @@ def checksum_calculator(data):
  checksum = zlib.crc32(data)
  return checksum
 
+path = os.path.join(os.getcwd(), '') 
+if not os.path.exists(os.path.join(path, "file_client")):
+   os.mkdir(os.path.join(path, "file_client"))
+   path = os.path.join(path, "file_client")
+
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
