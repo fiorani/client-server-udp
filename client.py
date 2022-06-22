@@ -7,12 +7,12 @@ def checksum_calculator(data):
  checksum = zlib.crc32(data)
  return checksum
 
-path = os.path.join(os.getcwd(), '') 
-if not os.path.exists(os.path.join(path, "file_client")):
-   os.mkdir(os.path.join(path, "file_client"))
+
+if not os.path.exists(os.path.join('', "file_client")):
+   os.mkdir(os.path.join('', "file_client"))
    
 
-path = path+"/file_client"
+path = os.path.join(os.getcwd(), 'file_client')
 file=os.listdir(path)
 print(file)
 

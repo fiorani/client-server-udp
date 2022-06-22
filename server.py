@@ -10,11 +10,11 @@ def checksum_calculator(data):
  return checksum
  
 
-path = os.path.join(os.getcwd(), '') 
-if not os.path.exists(os.path.join(path, "file_server")):
-   os.mkdir(os.path.join(path, "file_server"))
+if not os.path.exists(os.path.join('', "file_server")):
+   os.mkdir(os.path.join('', "file_server"))
    
-path = path+"/file_server"
+
+path = os.path.join(os.getcwd(), 'file_server')
 file=os.listdir(path)
 print(file)
 
