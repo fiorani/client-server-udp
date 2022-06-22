@@ -13,9 +13,10 @@ def checksum_calculator(data):
 path = os.path.join(os.getcwd(), '') 
 if not os.path.exists(os.path.join(path, "file_server")):
    os.mkdir(os.path.join(path, "file_server"))
-   path = os.path.join(path, "file_server")
-
-
+   
+path = path+"/file_server"
+file=os.listdir(path)
+print(file)
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 server_address = ('localhost', 10000)
