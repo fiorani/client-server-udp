@@ -1,17 +1,28 @@
 import socket as sk
 import time
 import struct
+import os
 import zlib
+
+
 def checksum_calculator(data):
  checksum = zlib.crc32(data)
  return checksum
+ 
+
+path = os.path.join(os.getcwd(), '') 
+if not os.path.exists(os.path.join(path, "file")):
+   os.mkdir(os.path.join(path, "file"))
+   path = os.path.join(path, "file")
+
+
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 server_address = ('localhost', 10000)
-
+sock.bind(server_address)
 print ('\n\r starting up on %s port %s' % server_address)
 
-sock.bind(server_address)
+
 
 while True:
     print('\n\r waiting to receive message...')

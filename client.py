@@ -1,6 +1,7 @@
 import socket as sk
 import time
 import struct
+import os
 import zlib
 def checksum_calculator(data):
  checksum = zlib.crc32(data)
