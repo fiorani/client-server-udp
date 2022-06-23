@@ -45,7 +45,7 @@ try:
     print("inviato ",count," su ",tot_packs)
     message = 'inviato'
     packet=message.encode()
-    udp_header = struct.pack("!IIII", 3, port, len(packet), checksum_calculator(packet))
+    udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
 
         

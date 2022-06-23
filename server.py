@@ -64,7 +64,7 @@ while True:
             if correct_checksum != checksum:
                 print("corrotto")
             if a==3:
-                print ("arrivati ",count)
+                print ("arrivati ",count," su ",b)
                 break
             chunk = data
             
