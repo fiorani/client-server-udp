@@ -15,12 +15,13 @@ file = 'client.png'
 buffer=4096*2
 
 def configura_connessione(msg):
-    while True:
-        print(msg)
-        packet=msg.encode()
-        udp_header = struct.pack('!IIII', 1, port, len(packet), ut.checksum_calculator(packet))
-        sock.sendto(udp_header + packet, server_address)
-        Thread(target=(invia_file), args=('client.png',)).start()
+    print(msg)
+    packet=msg.encode()
+    udp_header = struct.pack('!IIII', 1, port, len(packet), ut.checksum_calculator(packet))
+    sock.sendto(udp_header + packet, server_address)
+    ACCEPT_THREAD=Thread(target=invia_file, args=('client.png',))
+    ACCEPT_THREAD.start()
+    ACCEPT_THREAD.join()
 
 def invia_file(fileName):
     tot_packs = math.ceil(os.path.getsize(fileName)/buffer)+1
@@ -36,26 +37,19 @@ def invia_file(fileName):
             print("inviato ",count," su ",tot_packs)
             break
     file.close()
-    Thread(target=(termina_invio), args=('Termina invio messaggio...')).start()
+    ACCEPT_THREAD=Thread(target=termina_invio, args=('Termina invio messaggio...',tot_packs,))
+    ACCEPT_THREAD.start()
+    ACCEPT_THREAD.join()
   
 def termina_invio(msg, tot_packs):
     packet = msg.encode()
     udp_header = struct.pack('!IIII', 3, tot_packs, len(packet), ut.checksum_calculator(packet))
     sock.sendto(udp_header + packet, server_address)
     
-try:
-    
-    Thread(target=(configura_connessione), args=('Inizio invio messaggio...',)).start()
-
-        
-except Exception as info:
-    print(info)
-finally:
-    print ('closing socket')
-    sock.close()
-    
 if __name__ == "__main__":
-    sock.listen(5)
+    ACCEPT_THREAD = Thread(target=configura_connessione, args=('Inizio invio messaggio...',))
+    ACCEPT_THREAD.start()
+    ACCEPT_THREAD.join()
     print("In attesa di connesioni...")
     sock.close()
     
