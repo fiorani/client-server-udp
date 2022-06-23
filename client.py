@@ -19,7 +19,7 @@ sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
 server_address = ('localhost', port)
 file = 'client.png'
-buffer=2048
+buffer=1024
 
 try:
     
