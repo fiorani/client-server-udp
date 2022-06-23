@@ -7,7 +7,7 @@ import utilities as ut
 
 ut.return_list_of_files_in('file_server')
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-port=10000;
+port=8080;
 server_address = ('localhost', port)
 sock.bind(server_address)
 print ('\n\r starting up on %s port %s' % server_address)
