@@ -7,6 +7,7 @@ import utilities as ut
 
 ut.return_list_of_files_in('file_client')
 
+
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
 server_address = ('localhost', port)
@@ -20,7 +21,7 @@ try:
     packet=message.encode()
     udp_header = struct.pack("!IIII", 1, port, len(packet), ut.checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
-    
+    sock.settimeout(10)
     tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
     count=0
     file = open(file, "rb") 
@@ -30,13 +31,14 @@ try:
         packet=chunk
         udp_header = struct.pack("!IIII", 2, count, len(packet), ut.checksum_calculator(packet))
         sent = sock.sendto(udp_header + packet, server_address)
-        
+        sock.settimeout(10)
         
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
         while a==4:
             sent = sock.sendto(udp_header + packet, server_address)
+            sock.settimeout(10)
             rcv, address = sock.recvfrom(buffer)
             received_udp_header = rcv[:16]
             a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -52,10 +54,11 @@ try:
     packet=message.encode()
     udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), ut.checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
-
+    sock.settimeout(10)
         
-except Exception as info:
-    print(info)
+except sk.timeout:
+    print ('timeout')
+    sock.close()
 finally:
     print ('closing socket')
     sock.close()
