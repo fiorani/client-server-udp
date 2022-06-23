@@ -3,6 +3,7 @@ import time
 import struct
 import os
 import zlib
+import math
 def checksum_calculator(data):
  checksum = zlib.crc32(data)
  return checksum
@@ -12,35 +13,44 @@ if not os.path.exists(os.path.join(os.getcwd(), "file_client")):
    os.mkdir(os.path.join(os.getcwd(), "file_client"))
    
 path = os.path.join(os.getcwd(), 'file_client')
-file=os.listdir(path)
-print(file)
+print(os.listdir(path))
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
 server_address = ('localhost', port)
-message = 'bella'
+file = 'client.png'
+buffer=4096*2
 
 try:
-
-    # inviate il messaggio
-    print ('sending "%s"' % message)
-    time.sleep(2) #attende 2 secondi prima di inviare la richiesta
+    
+    print("invio")
+    message = 'invio'
     packet=message.encode()
-    checksum = checksum_calculator(packet)
-    data_length = len(packet)
-    udp_header = struct.pack("!IIII", port, port, data_length, checksum)
-    #test corrotto
-    message = 'bel'
+    udp_header = struct.pack("!IIII", 1, port, len(packet), checksum_calculator(packet))
+    sent = sock.sendto(udp_header + packet, server_address)
+    
+    tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
+    count=0
+    file = open(file, "rb") 
+    
+    while True:
+        chunk= file.read(buffer)
+        packet=chunk
+        udp_header = struct.pack("!IIII", 2, count, len(packet), checksum_calculator(packet))
+        sent = sock.sendto(udp_header + packet, server_address)
+        count+=1
+        if count==tot_packs:
+            print("inviato ",count," su ",tot_packs)
+            break
+        
+    file.close()
+   
+    message = 'inviato'
     packet=message.encode()
-    packet_with_header = udp_header + packet
-    sent = sock.sendto(packet_with_header, server_address)
+    udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), checksum_calculator(packet))
+    sent = sock.sendto(udp_header + packet, server_address)
 
-    # Ricevete la risposta dal server
-    print('waiting to receive from')
-    data, server = sock.recvfrom(4096)
-    #print(server)
-    time.sleep(2)
-    print ('received message "%s"' % data.decode('utf8'))
+        
 except Exception as info:
     print(info)
 finally:

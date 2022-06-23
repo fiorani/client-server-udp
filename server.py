@@ -19,38 +19,58 @@ file=os.listdir(path)
 print(file)
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-server_address = ('localhost', 10000)
+port=10000;
+server_address = ('localhost', port)
 sock.bind(server_address)
 print ('\n\r starting up on %s port %s' % server_address)
-
+buffer=4096*4
 
 
 while True:
-    print('\n\r waiting to receive message...')
-    
-    data_rcv, address = sock.recvfrom(4096)
+    print('aspetto')
+    data_rcv, address = sock.recvfrom(buffer)
     udp_header = data_rcv[:16]
     data = data_rcv[16:]
     udp_header = struct.unpack("!IIII", udp_header)
     correct_checksum = udp_header[3]
     checksum = checksum_calculator(data)
-
-    print('received %s bytes from %s' % (len(data), address))
     print (data.decode('utf8'))
     
     if correct_checksum != checksum:
-        data1='corrotto'
-        time.sleep(2)
-        sent = sock.sendto(data1.encode(), address)
-        print ('sent %s bytes back to %s' % (sent, address))
+        print('arrivato corrotto')
     elif data:
-        data1='arrivato'
-        time.sleep(2)
-        sent = sock.sendto(data1.encode(), address)
-        print ('sent %s bytes back to %s' % (sent, address))
+        print('connessione stabilità')
+        count=0
+        file= open("server.png", "wb") 
+        while True:   
+            
+            data_rcv, address = sock.recvfrom(buffer)
+            udp_header = data_rcv[:16]
+            data = data_rcv[16:]
+            a,b,c,d = struct.unpack("!IIII", udp_header)
+            udp_header = struct.unpack("!IIII", udp_header)
+            correct_checksum = udp_header[3]
+            checksum = checksum_calculator(data)
+            if correct_checksum != checksum:
+                print("corrotto")
+            if a==3:
+                print ("arrivati ",count," su ",b)
+                break
+            
+            print (b)
+            if b!=count:
+                print("error")
+            chunk = data
+            file.write(chunk)
+            count+=1
+            
+        file.close()
+        
     else:
-        data1='arrivato vuoto'
-        time.sleep(2)
-        sent = sock.sendto(data1.encode(), address)
-        print ('sent %s bytes back to %s' % (sent, address))
+        print('arrivato vuoto')
+        
+        
+
+
+
 
