@@ -9,8 +9,9 @@ ut.return_list_of_files_in('file_client')
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
-server_address = ('localhost', port)
-file = 'client.png'
+server_address = ('riccardofiorani.ddns.net', port)
+#sock.bind(server_address)
+file = 'download.mp4'
 buffer=4096*2
 
 try:
@@ -30,7 +31,6 @@ try:
         packet=chunk
         udp_header = struct.pack("!IIII", 2, count, len(packet), ut.checksum_calculator(packet))
         sent = sock.sendto(udp_header + packet, server_address)
-        
         
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
