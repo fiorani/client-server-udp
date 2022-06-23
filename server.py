@@ -3,21 +3,9 @@ import time
 import struct
 import os
 import zlib
+import utilities as ut
 
-
-def checksum_calculator(data):
- checksum = zlib.crc32(data)
- return checksum
- 
-
-if not os.path.exists(os.path.join(os.getcwd(),"file_server")):
-   os.mkdir(os.path.join(os.getcwd(), "file_server"))
-   
-
-path = os.path.join(os.getcwd(), 'file_server')
-file=os.listdir(path)
-print(file)
-
+ut.return_list_of_files_in('file_server')
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
 server_address = ('localhost', port)
@@ -33,7 +21,7 @@ while True:
     data = data_rcv[16:]
     udp_header = struct.unpack("!IIII", udp_header)
     correct_checksum = udp_header[3]
-    checksum = checksum_calculator(data)
+    checksum = ut.checksum_calculator(data)
     print (data.decode('utf8'))
     
     if correct_checksum != checksum:
@@ -50,7 +38,7 @@ while True:
             a,b,c,d = struct.unpack("!IIII", udp_header)
             udp_header = struct.unpack("!IIII", udp_header)
             correct_checksum = udp_header[3]
-            checksum = checksum_calculator(data)
+            checksum = ut.checksum_calculator(data)
             if correct_checksum != checksum:
                 print("corrotto")
             if a==3:
