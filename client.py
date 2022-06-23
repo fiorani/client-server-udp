@@ -12,7 +12,7 @@ sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
 server_address = ('riccardofiorani.ddns.net', port)
 #sock.bind(server_address)
-file = 'download.mp4'
+file = 'top.mp4'
 buffer=4096*2
 
 try:
