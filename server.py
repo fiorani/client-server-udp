@@ -42,7 +42,13 @@ while True:
         print('connessione stabilità')
         count=0
         data_rcv, address = sock.recvfrom(buffer)
+        udp_header = data_rcv[:16]
         data = data_rcv[16:]
+        udp_header = struct.unpack("!IIII", udp_header)
+        correct_checksum = udp_header[3]
+        checksum = checksum_calculator(data)
+        if correct_checksum != checksum:
+            print("corrotto")
         file= open("server.png", "wb") 
         chunk = data
         while chunk:   
@@ -52,6 +58,11 @@ while True:
             udp_header = data_rcv[:16]
             data = data_rcv[16:]
             a,b,c,d = struct.unpack("!IIII", udp_header)
+            udp_header = struct.unpack("!IIII", udp_header)
+            correct_checksum = udp_header[3]
+            checksum = checksum_calculator(data)
+            if correct_checksum != checksum:
+                print("corrotto")
             if a==3:
                 print ("arrivati ",count)
                 break
