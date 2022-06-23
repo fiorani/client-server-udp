@@ -39,7 +39,7 @@ try:
                 a,b,c,d = struct.unpack("!IIII", udp_header)
                 correct_checksum = d
                 checksum = ut.checksum_calculator(data)
-                while correct_checksum != checksum or count != b:
+                while correct_checksum != checksum or count != b or sk.timeout:
                     udp_header = struct.pack('!IIII', 4, count, 0, 0)
                     sock.sendto(udp_header, address)
                     sock.settimeout(10)
@@ -64,12 +64,6 @@ try:
             
         else:
             print('arrivato vuoto')
-        
-        
-
-except sk.timeout:
-    print ('timeout')
-    sock.close()
 finally:
     print ('closing socket')
     sock.close()
