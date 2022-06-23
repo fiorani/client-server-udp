@@ -12,10 +12,12 @@ server_address = ('localhost', port)
 sock.bind(server_address)
 print ('\n\r starting up on %s port %s' % server_address)
 buffer=4096*4
-
+timeoutLimit = 100
 
 try:
+    
     while True:
+        sock.settimeout(timeoutLimit)
         print('aspetto')
         data_rcv, address = sock.recvfrom(buffer)
         udp_header = data_rcv[:16]
@@ -62,6 +64,9 @@ try:
             
         else:
             print('arrivato vuoto')
+            
+        
 finally:
+    sock.settimeout(None)
     print ('closing socket')
     sock.close()

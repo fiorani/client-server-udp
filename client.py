@@ -11,19 +11,19 @@ ut.return_list_of_files_in('file_client')
 
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
 port=10000;
-server_address = ('riccardofiorani.ddns.net', port)
+server_address = ('localhost', port)
 #sock.bind(server_address)
-file = 'top.mp4'
+file = 'client.png'
 buffer=4096*2
-timeoutLimit = 10
+timeoutLimit = 100
 try:
     
+    sock.settimeout(timeoutLimit)
     print("invio")
     message = 'invio'
     packet=message.encode()
     udp_header = struct.pack("!IIII", 1, port, len(packet), ut.checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
-    sock.settimeout(10)
     tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
     count=0
     file = open(file, "rb") 
@@ -35,7 +35,7 @@ try:
         if random.randint(0, 10) == 5:
             print('pacchetto ' + str(count) + ' perso')
             sent = sock.sendto(udp_header + packet, server_address)
-        sock.settimeout(timeoutLimit)        
+                
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -44,7 +44,6 @@ try:
             print(a)
             print(sock.timeout)
             sent = sock.sendto(udp_header + packet, server_address)
-            sock.settimeout(10)
             rcv, address = sock.recvfrom(buffer)
             received_udp_header = rcv[:16]
             a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -60,8 +59,9 @@ try:
     packet=message.encode()
     udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), ut.checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
-    sock.settimeout(timeoutLimit)
+    sock.settimeout(None)
         
 finally:
+    sock.settimeout(None)
     print ('closing socket')
     sock.close()
