@@ -39,25 +39,30 @@ while True:
     if correct_checksum != checksum:
         print('arrivato corrotto')
     elif data:
-        print('arrivato')
+        print('connessione stabilità')
+        count=0
         data_rcv, address = sock.recvfrom(buffer)
-        udp_header = data_rcv[:16]
         data = data_rcv[16:]
-        udp_header = struct.unpack("!IIII", udp_header)
-        correct_checksum = udp_header[3]
-        checksum = checksum_calculator(data)
         file= open("server.png", "wb") 
         chunk = data
         while chunk:   
             file.write(chunk)
+            count+=1
             data_rcv, address = sock.recvfrom(buffer)
+            udp_header = data_rcv[:16]
             data = data_rcv[16:]
+            a,b,c,d = struct.unpack("!IIII", udp_header)
+            if a==3:
+                print ("arrivati ",count)
+                break
             chunk = data
             
-            
         file.close
+        
     else:
         print('arrivato vuoto')
+        
+        
 
 
 
