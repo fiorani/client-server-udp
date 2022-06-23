@@ -40,17 +40,22 @@ while True:
             checksum = ut.checksum_calculator(data)
             if correct_checksum != checksum:
                 print("corrotto")
-            if a==3:
+                udp_header = struct.pack('!IIII', 4, count, 0, 0)
+                sock.sendto(udp_header, address)
+            elif count != b:
+                print("fuori ordine")
+                udp_header = struct.pack('!IIII', 4, count, 0, 0)
+                sock.sendto(udp_header, address)
+            elif a==3:
                 print ("arrivati ",count," su ",b)
                 break
-            
-            print (b)
-            if b!=count:
-                print("error")
-            chunk = data
-            file.write(chunk)
-            count+=1
-            
+            else:
+                chunk = data
+                file.write(chunk)
+                count+=1
+                udp_header = struct.pack('!IIII', 5, count, 0, 0)
+                sock.sendto(udp_header, address)
+            print(b)
         file.close()
         
     else:
