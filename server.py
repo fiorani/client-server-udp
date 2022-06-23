@@ -39,10 +39,9 @@ try:
                 a,b,c,d = struct.unpack("!IIII", udp_header)
                 correct_checksum = d
                 checksum = ut.checksum_calculator(data)
-                while correct_checksum != checksum or count != b or sk.timeout:
+                while correct_checksum != checksum or count != b:
                     udp_header = struct.pack('!IIII', 4, count, 0, 0)
                     sock.sendto(udp_header, address)
-                    sock.settimeout(10)
                     data_rcv, address = sock.recvfrom(buffer)
                     udp_header = data_rcv[:16]
                     data = data_rcv[16:]
@@ -54,7 +53,6 @@ try:
                     break
                 udp_header = struct.pack('!IIII', 5, count, 0, 0)
                 sock.sendto(udp_header, address)
-                sock.settimeout(10)                   
                 chunk = data
                 file.write(chunk)
                 count+=1
