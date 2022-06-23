@@ -43,6 +43,9 @@ try:
     file.close
     
     print("inviato ",count," su ",tot_packs)
+    if count==tot_packs:
+        print("inviati tutti")
+    
     message = 'inviato'
     packet=message.encode()
     udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), checksum_calculator(packet))

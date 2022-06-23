@@ -65,6 +65,8 @@ while True:
                 print("corrotto")
             if a==3:
                 print ("arrivati ",count," su ",b)
+                if count==b:
+                    print("arrivati tutti")
                 break
             chunk = data
             
