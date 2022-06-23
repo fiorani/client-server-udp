@@ -30,6 +30,14 @@ try:
         packet=chunk
         udp_header = struct.pack("!IIII", 2, count, len(packet), ut.checksum_calculator(packet))
         sent = sock.sendto(udp_header + packet, server_address)
+        rcv, address = sock.recvfrom(buffer)
+        received_udp_header = rcv[:16]
+        a,b,c,d = struct.unpack('!IIII', received_udp_header)
+        while(a == 4):
+            sent = sock.sendto(udp_header + packet, server_address)
+            rcv, address = sock.recvfrom(buffer)
+            received_udp_header = rcv[:16]
+            a,b,c,d = struct.unpack('!IIII', received_udp_header)
         count+=1
         if count==tot_packs:
             print("inviato ",count," su ",tot_packs)
