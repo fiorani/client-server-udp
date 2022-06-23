@@ -36,8 +36,7 @@ while True:
             udp_header = data_rcv[:16]
             data = data_rcv[16:]
             a,b,c,d = struct.unpack("!IIII", udp_header)
-            udp_header = struct.unpack("!IIII", udp_header)
-            correct_checksum = udp_header[3]
+            correct_checksum = d
             checksum = ut.checksum_calculator(data)
             if correct_checksum != checksum:
                 print("corrotto")
