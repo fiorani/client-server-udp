@@ -4,6 +4,7 @@ import struct
 import os
 import math
 import utilities as ut
+import random
 
 ut.return_list_of_files_in('file_client')
 
@@ -14,7 +15,7 @@ server_address = ('riccardofiorani.ddns.net', port)
 #sock.bind(server_address)
 file = 'top.mp4'
 buffer=4096*2
-
+timeoutLimit = 10
 try:
     
     print("invio")
@@ -31,12 +32,17 @@ try:
         chunk= file.read(buffer)
         packet=chunk
         udp_header = struct.pack("!IIII", 2, count, len(packet), ut.checksum_calculator(packet))
-        sent = sock.sendto(udp_header + packet, server_address)
-        sock.settimeout(10)        
+        if random.randint(0, 10) == 5:
+            print('pacchetto ' + str(count) + ' perso')
+            sent = sock.sendto(udp_header + packet, server_address)
+        sock.settimeout(timeoutLimit)        
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
-        while a==4 or sock.timeout:
+        while a==4 or sock.timeout == 0:
+            print('qualche errore è successo')
+            print(a)
+            print(sock.timeout)
             sent = sock.sendto(udp_header + packet, server_address)
             sock.settimeout(10)
             rcv, address = sock.recvfrom(buffer)
@@ -54,7 +60,7 @@ try:
     packet=message.encode()
     udp_header = struct.pack("!IIII", 3, tot_packs, len(packet), ut.checksum_calculator(packet))
     sent = sock.sendto(udp_header + packet, server_address)
-    sock.settimeout(10)
+    sock.settimeout(timeoutLimit)
         
 finally:
     print ('closing socket')
