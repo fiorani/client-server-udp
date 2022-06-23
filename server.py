@@ -4,17 +4,18 @@ import struct
 import os
 import zlib
 import utilities as ut
+from threading import Thread
 
 ut.return_list_of_files_in('file_server')
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-port=8080;
+port = 8080
 server_address = ('localhost', port)
 sock.bind(server_address)
-print ('\n\r starting up on %s port %s' % server_address)
-buffer=4096*4
+print('\n\r starting up on %s port %s' % server_address)
+buffer = 4096*4
 
 
-while True:
+def configura_connessione():
     print('aspetto')
     data_rcv, address = sock.recvfrom(buffer)
     udp_header = data_rcv[:16]
@@ -22,40 +23,51 @@ while True:
     udp_header = struct.unpack("!IIII", udp_header)
     correct_checksum = udp_header[3]
     checksum = ut.checksum_calculator(data)
-    print (data.decode('utf8'))
-    
+    print(data.decode('utf8'))
     if correct_checksum != checksum:
         print('arrivato corrotto')
     elif data:
-        print('connessione stabilità')
-        count=0
-        file= open("server.png", "wb") 
-        while True:   
-            
+        ACCEPT_THREAD = Thread(target=ricevi_file)
+        ACCEPT_THREAD.start()
+        ACCEPT_THREAD.join()
+
+
+def ricevi_file():
+
+    print('connessione stabilità')
+     count = 0
+      file = open("server.png", "wb")
+       while True:
+
             data_rcv, address = sock.recvfrom(buffer)
             udp_header = data_rcv[:16]
             data = data_rcv[16:]
-            a,b,c,d = struct.unpack("!IIII", udp_header)
+            a, b, c, d = struct.unpack("!IIII", udp_header)
             correct_checksum = d
             checksum = ut.checksum_calculator(data)
-            if correct_checksum != checksum:
+            if (correct_checksum != checksum) | (b != count):
                 print("corrotto")
-            if a==3:
-                print ("arrivati ",count," su ",b)
+            if a == 3:
+                print("arrivati ", count, " su ", b)
                 break
-            
-            print (b)
-            if b!=count:
-                print("error")
+
+            print(b)
+
             chunk = data
             file.write(chunk)
-            count+=1
-            
+            count += 1
+
         file.close()
-        
-    else:
-        print('arrivato vuoto')
-        
+
+
+if __name__ == "__main__":
+    ACCEPT_THREAD = Thread(target=configura_connessione)
+    ACCEPT_THREAD.start()
+    ACCEPT_THREAD.join()
+    print("In attesa di connesioni...")
+    sock.close()
+
+
         
 
 
