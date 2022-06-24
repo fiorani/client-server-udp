@@ -9,14 +9,6 @@ from operationType import OperationType as OPType
 
 ut.return_list_of_files_in('file_server')
 class server:
-    sock=0
-    port=0
-    buffer=0
-    timeoutLimit = 0
-    server_address=''
-    path = ''
-    
-
 
     def __init__(self,server_address,port):
        self.port=port
@@ -27,15 +19,15 @@ class server:
        self.sock.bind(self.server_address)
        self.path = os.path.join(os.getcwd(), 'file_server')
        
-    def get_files(self):
+    def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
         print(' list ')
         list_directories = os.listdir(self.path)
-        listToStr = ''.join([(str(directory)) for directory in list_directories])
+        listToStr = ''.join([(str(directory) + '\n') for directory in list_directories])
         print(listToStr)
         packet=listToStr.encode()
-        udp_header = struct.pack('!IIII', OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
-        sent = self.sock.sendto(udp_header + packet, self.server_address)      
+        udp_header = struct.pack('!IIII', OPType.GET_SERVER_FILES.value, 0, len(packet), ut.checksum_calculator(packet))
+        sent = self.sock.sendto(udp_header + packet, address)      
         print(' -> Sending all the files in the Directory...')
         self.sock.settimeout(None)
 
@@ -126,7 +118,7 @@ class server:
         self.sock.close()
         
 if __name__ == '__main__':
-    server=server('localhost',8080)
+    server=server('localhost',10000)
     while True:
         print('aspetto')
         data_rcv, address = server.sock.recvfrom(server.buffer)
@@ -136,8 +128,10 @@ if __name__ == '__main__':
         print(a,b)
         if a==OPType.UPLOAD.value:
             server.upload(data.decode('utf8'),address)
+        elif a==OPType.GET_SERVER_FILES.value:
+            server.get_files(address)
         elif a==OPType.DOWNLOAD.value:
             server.download(data.decode('utf8'),address)
         elif a==OPType.CLOSE_CONNECTION.value:  
             server.close_server()
-            break;
+            break
