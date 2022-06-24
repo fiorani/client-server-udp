@@ -41,6 +41,8 @@ while True:
             sent = sock.sendto(udp_header + packet, server_address)
         else :
             print(count,"perso")
+            
+        
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -50,15 +52,22 @@ while True:
             rcv, address = sock.recvfrom(buffer)
             received_udp_header = rcv[:16]
             a,b,c,d = struct.unpack('!IIII', received_udp_header)
-        count+=1
-        var+=1
-        if count==tot_packs:
-            print("inviato ",count," su ",tot_packs)
-            break
+
     except sk.timeout:
         print('timeout')
+        while True:
+            sent = sock.sendto(udp_header + packet, server_address)
+            rcv, address = sock.recvfrom(buffer)
+            received_udp_header = rcv[:16]
+            a,b,c,d = struct.unpack('!IIII', received_udp_header)
+            if a==4:
+                break
         var+=1
-        
+    count+=1
+    var+=1
+    if count==tot_packs:
+        print("inviato ",count," su ",tot_packs)
+        break
 
     
 file.close()
