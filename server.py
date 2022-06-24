@@ -4,6 +4,7 @@ import struct
 import os
 import zlib
 import utilities as ut
+from operationType import OperationType as OPType
 
 ut.return_list_of_files_in('file_server')
 sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -45,7 +46,7 @@ try:
                     checksum = ut.checksum_calculator(data)
                     while correct_checksum != checksum or count != b:
                         print('qualche errore')
-                        udp_header = struct.pack('!IIII', 4, count, 0, 0)
+                        udp_header = struct.pack('!IIII', OPType.NACK, count, 0, 0)
                         sock.sendto(udp_header, address)
                         data_rcv, address = sock.recvfrom(buffer)
                         udp_header = data_rcv[:16]
@@ -59,7 +60,7 @@ try:
                         print("arrivati ", count, " su ", b)
                         sock.settimeout(None)
                         break
-                    udp_header = struct.pack('!IIII', 5, count, 0, 0)
+                    udp_header = struct.pack('!IIII', OPType.ACK, count, 0, 0)
                     sock.sendto(udp_header, address)
                     chunk = data
                     file.write(chunk)
