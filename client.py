@@ -26,6 +26,7 @@ udp_header = struct.pack("!IIII", 1, port, len(packet), ut.checksum_calculator(p
 sent = sock.sendto(udp_header + packet, server_address)
 tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
 count=0
+var=1
 file = open(file, "rb") 
 
 
@@ -36,9 +37,10 @@ while True:
         chunk= file.read(buffer)
         packet=chunk
         udp_header = struct.pack("!IIII", 2, count, len(packet), ut.checksum_calculator(packet))
-        if count % 2:
-            print(count,"perso")
+        if var % 3:
             sent = sock.sendto(udp_header + packet, server_address)
+        else :
+            print(count,"perso")
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -48,21 +50,16 @@ while True:
             rcv, address = sock.recvfrom(buffer)
             received_udp_header = rcv[:16]
             a,b,c,d = struct.unpack('!IIII', received_udp_header)
-    
+        count+=1
+        var+=1
+        if count==tot_packs:
+            print("inviato ",count," su ",tot_packs)
+            break
     except sk.timeout:
         print('timeout')
-        while True:
-            sent = sock.sendto(udp_header + packet, server_address)
-            rcv, address = sock.recvfrom(buffer)
-            received_udp_header = rcv[:16]
-            a,b,c,d = struct.unpack('!IIII', received_udp_header)
-            if a==4:
-                break
-            
-    count+=1
-    if count==tot_packs:
-        print("inviato ",count," su ",tot_packs)
-        break
+        var+=1
+        
+
     
 file.close()
    
