@@ -23,15 +23,17 @@ class server:
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.server_address=(server_address,port)
        self.sock.bind(self.server_address)
-       self.timeoutLimit = 10
+       self.timeoutLimit = 100
        self.buffer=4096*2
        self.sock.settimeout(self.timeoutLimit)
        self.path = os.path.join(os.getcwd(), 'file_server')
        
-    def get_files(self, client):
+    def get_files(self):
         print(' -> Received command : "list files" ')
         list_directories = os.listdir(self.path)
-        packet=list_directories
+        listToStr = ''.join([(str(directory)) for directory in list_directories])
+        print(listToStr)
+        packet=listToStr.encode()
         udp_header = struct.pack("!IIII", OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet, self.server_address)      
         print(' -> Sending all the files in the Directory...')
@@ -153,6 +155,6 @@ class server:
         
 if __name__ == "__main__":
     server=server('localhost',10000)
-    #init(client,server_address,port)
-    server.download()
+    server.get_files()    
+    #server.download()
     server.close_server()

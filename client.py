@@ -23,18 +23,22 @@ class client:
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.server_address=((server_address,port))
        #self.sock.bind(self.server_address)
-       self.timeoutLimit = 10
+       self.timeoutLimit = 100
        self.buffer=4096
        self.sock.settimeout(self.timeoutLimit)
        self.path = os.path.join(os.getcwd(), 'file_client')
        
-    def get_files(self, client):
-        print(' -> Received command : "list files" ')
-        list_directories = os.listdir(self.path)
-        packet=list_directories
-        udp_header = struct.pack("!IIII", OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
-        sent = self.sock.sendto(udp_header + packet, self.server_address)      
-        print(' -> Sending all the files in the Directory...')
+    def get_files_from_server(self):
+      data_rcv, address = self.sock.recvfrom(self.buffer)
+      udp_header = data_rcv[:16]
+      data = data_rcv[16:]
+      udp_header = struct.unpack("!IIII", udp_header)
+      correct_checksum = udp_header[3]
+      checksum = ut.checksum_calculator(data)
+      if correct_checksum != checksum:
+          print('arrivato corrotto')
+      elif data:
+          print('scarico',data.decode('utf8'))
     
 
     def upload(self,filename):
@@ -153,6 +157,7 @@ class client:
         
 if __name__ == "__main__":
     client=client('localhost',10000)
-    #init(client,server_address,port)
-    client.upload("client.png")
+    
+    client.get_files_from_server()()
+    #client.upload("client.png")
     client.close_client()
