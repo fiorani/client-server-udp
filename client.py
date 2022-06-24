@@ -55,7 +55,7 @@ class client:
                 chunk= file.read(4096*2)
                 packet=chunk
                 udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
-                if random.randint(0, 100)==count:
+                if random.randint(0, 2000)==count:
                     print('perso pacchetto',count)
                 else:
                     sent = self.sock.sendto(udp_header + packet, self.server_address)
