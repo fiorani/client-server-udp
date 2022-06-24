@@ -21,7 +21,7 @@ class client:
     def __init__(self,server_address,port):
        self.port=port
        self.server_address=((server_address,port))
-       self.timeoutLimit = 10
+       self.timeoutLimit = 3
        self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.path = os.path.join(os.getcwd(), 'file_client')
