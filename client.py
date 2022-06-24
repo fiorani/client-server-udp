@@ -20,12 +20,12 @@ timeoutLimit = 1
 
 
 sock.settimeout(timeoutLimit)
-print("invio")
-message = 'invio'
+print("invio ",file)
+message = file
 packet=message.encode()
-udp_header = struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, port, len(packet), ut.checksum_calculator(packet))
+tot_packs = math.ceil(os.path.getsize(file)/buffer)
+udp_header = struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
 sent = sock.sendto(udp_header + packet, server_address)
-tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
 count=0
 var=1
 file = open(file, "rb") 

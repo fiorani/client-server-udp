@@ -34,7 +34,7 @@ try:
             print('connessione stabilità')
             count = 0
             sock.settimeout(timeoutLimit)
-            file = open("server.png", "wb")
+            file = open(data.decode('utf8'), "wb")
             try:
                 while True:
 
@@ -54,9 +54,7 @@ try:
                         a, b, c, d = struct.unpack("!IIII", udp_header)
                         correct_checksum = d
                         checksum = ut.checksum_calculator(data)
-                        if b > count:
-                            break
-                    if a is OPType.CLOSE_CONNECTION or b > count:
+                    if a is OPType.CLOSE_CONNECTION.value :
                         print("arrivati ", count, " su ", b)
                         sock.settimeout(None)
                         break
