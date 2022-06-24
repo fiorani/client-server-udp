@@ -29,6 +29,7 @@ class server:
        self.path = os.path.join(os.getcwd(), 'file_server')
        
     def get_files(self):
+        time.sleep(10)
         print(' -> Received command : "list files" ')
         list_directories = os.listdir(self.path)
         listToStr = ''.join([(str(directory)) for directory in list_directories])
