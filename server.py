@@ -28,12 +28,12 @@ class server:
        
     def get_files(self):
         self.sock.settimeout(self.timeoutLimit)
-        print(' -> Received command : "list files" ')
+        print(' list ')
         list_directories = os.listdir(self.path)
         listToStr = ''.join([(str(directory)) for directory in list_directories])
         print(listToStr)
         packet=listToStr.encode()
-        udp_header = struct.pack("!IIII", OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
+        udp_header = struct.pack('!IIII', OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet, self.server_address)      
         print(' -> Sending all the files in the Directory...')
         self.sock.settimeout(None)
@@ -41,14 +41,14 @@ class server:
     def upload(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
         self.buffer=4096*2
-        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/self.buffer)
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/4096)
         count=0
-        file = open(os.path.join(self.path, filename), "rb") 
+        file = open(os.path.join(self.path, filename), 'rb') 
         while True:
             try:
                 chunk= file.read(4096)
                 packet=chunk
-                udp_header = struct.pack("!IIII", OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
+                udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
                 sent = self.sock.sendto(udp_header + packet, address)
                 rcv, address = self.sock.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
@@ -68,15 +68,15 @@ class server:
                     a,b,c,d = struct.unpack('!IIII', received_udp_header)
                     if a is OPType.ACK.value:
                         break
-            print("inviato pacchetto ",count)
+            print('inviato pacchetto ',count)
             count+=1
             if count==tot_packs:
-                print("inviato ",count," su ",tot_packs)
+                print('inviato ',count,' su ',tot_packs)
                 break  
         file.close()
         message = 'inviato'
         packet=message.encode()
-        udp_header = struct.pack("!IIII", OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
+        udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,address)
         self.sock.settimeout(None)
     
@@ -85,13 +85,13 @@ class server:
         self.buffer=4096*4
         print('scarico',filename)
         count = 0
-        file = open(os.path.join(self.path,filename), "wb")
+        file = open(os.path.join(self.path,filename), 'wb')
         try:
             while True:
                 data_rcv, address = self.sock.recvfrom(self.buffer)
                 udp_header = data_rcv[:16]
                 data = data_rcv[16:]
-                a, b, c, d = struct.unpack("!IIII", udp_header)
+                a, b, c, d = struct.unpack('!IIII', udp_header)
                 correct_checksum = d
                 checksum = ut.checksum_calculator(data)
                 while correct_checksum != checksum or count != b:
@@ -101,11 +101,11 @@ class server:
                     data_rcv, address = self.sock.recvfrom(self.buffer)
                     udp_header = data_rcv[:16]
                     data = data_rcv[16:]
-                    a, b, c, d = struct.unpack("!IIII", udp_header)
+                    a, b, c, d = struct.unpack('!IIII', udp_header)
                     correct_checksum = d
                     checksum = ut.checksum_calculator(data)
                 if a is OPType.CLOSE_CONNECTION.value :
-                    print("arrivati ", count, " su ", b)
+                    print('arrivati ', count, ' su ', b)
                     self.sock.settimeout(None)
                     break
                 udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
@@ -113,37 +113,32 @@ class server:
                 chunk = data
                 file.write(chunk)
                 count += 1
-                print("ricevuto pacchetto ",b)
+                print('ricevuto pacchetto ',b)
             file.close()
             self.sock.settimeout(None)
         except sk.timeout:
-            print("timeout")
+            print('timeout')
             self.sock.settimeout(None)
             file.close()
       
         
     def close_server(self):
-        self.sock.settimeout(None)
         print ('closing socket')
         self.sock.close()
         
-if __name__ == "__main__":
-    server=server('localhost',10000)
+if __name__ == '__main__':
+    server=server('localhost',8080)
     while True:
-        try:
-            print("aspetto")
-            data_rcv, address = server.sock.recvfrom(4096*4)
-            udp_header = data_rcv[:16]
-            data = data_rcv[16:]
-            a,b,c,d = struct.unpack("!IIII", udp_header)
-            print(a,b)
-            if a==OPType.UPLOAD.value:
-                server.upload(data.decode('utf8'),address)
-            elif a==OPType.DOWNLOAD.value:
-                server.download(data.decode('utf8'),address)
-            elif a==OPType.CLOSE_CONNECTION.value:  
-                server.close_server()
-            
-
-        except sk.timeout:
-            print("timeout")
+        print('aspetto')
+        data_rcv, address = server.sock.recvfrom(4096*4)
+        udp_header = data_rcv[:16]
+        data = data_rcv[16:]
+        a,b,c,d = struct.unpack('!IIII', udp_header)
+        print(a,b)
+        if a==OPType.UPLOAD.value:
+            server.upload(data.decode('utf8'),address)
+        elif a==OPType.DOWNLOAD.value:
+            server.download(data.decode('utf8'),address)
+        elif a==OPType.CLOSE_CONNECTION.value:  
+            server.close_server()
+            break;
