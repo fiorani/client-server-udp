@@ -22,6 +22,7 @@ class server:
        self.port=port
        self.server_address=(server_address,port)
        self.timeoutLimit = 10
+       self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.sock.bind(self.server_address)
        self.path = os.path.join(os.getcwd(), 'file_server')
@@ -40,7 +41,6 @@ class server:
 
     def upload(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
-        self.buffer=4096*2
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/4096)
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
@@ -82,7 +82,6 @@ class server:
     
     def download(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
-        self.buffer=4096*4
         print('scarico',filename)
         count = 0
         file = open(os.path.join(self.path,filename), 'wb')
@@ -130,7 +129,7 @@ if __name__ == '__main__':
     server=server('localhost',8080)
     while True:
         print('aspetto')
-        data_rcv, address = server.sock.recvfrom(4096*4)
+        data_rcv, address = server.sock.recvfrom(server.buffer)
         udp_header = data_rcv[:16]
         data = data_rcv[16:]
         a,b,c,d = struct.unpack('!IIII', udp_header)

@@ -22,6 +22,7 @@ class client:
        self.port=port
        self.server_address=((server_address,port))
        self.timeoutLimit = 10
+       self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.path = os.path.join(os.getcwd(), 'file_client')
        
@@ -41,18 +42,17 @@ class client:
 
     def upload(self,filename):
         self.sock.settimeout(self.timeoutLimit)
-        self.buffer=4096*2
         print('invio nome al server ',filename)
         message = filename
         packet=message.encode()
-        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/4096)
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         udp_header = struct.pack('!IIII', OPType.DOWNLOAD, 0, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,self.server_address)
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
         while True:
             try:
-                chunk= file.read(4096)
+                chunk= file.read(4096*2)
                 packet=chunk
                 udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
                 sent = self.sock.sendto(udp_header + packet, self.server_address)
@@ -89,7 +89,6 @@ class client:
     
     def download(self,filename):
         self.sock.settimeout(self.timeoutLimit)
-        self.buffer=4096*4
         print('invia nome al server ',filename)
         message = filename
         packet=message.encode()
