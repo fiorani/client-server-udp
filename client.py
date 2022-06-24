@@ -55,7 +55,10 @@ class client:
                 chunk= file.read(4096*2)
                 packet=chunk
                 udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
-                sent = self.sock.sendto(udp_header + packet, self.server_address)
+                if random.randint(0, 100)==count:
+                    print('perso pacchetto',count)
+                else:
+                    sent = self.sock.sendto(udp_header + packet, self.server_address)
                 rcv, address = self.sock.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
                 a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -147,8 +150,8 @@ class client:
 if __name__ == '__main__':
     client=client('localhost',8080)
     #client.get_files_from_server()
-    client.upload('upload.png')
-    client.download('download.png')
+    client.upload('fo.png')
+    client.download('mf.png')
     #client.close_server()
     client.close_client()
     

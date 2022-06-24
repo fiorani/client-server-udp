@@ -21,8 +21,8 @@ class server:
     def __init__(self,server_address,port):
        self.port=port
        self.server_address=(server_address,port)
-       self.timeoutLimit = 10
-       self.buffer=4096*4
+       self.timeoutLimit = 20
+       self.buffer=4096*8
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.sock.bind(self.server_address)
        self.path = os.path.join(os.getcwd(), 'file_server')
