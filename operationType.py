@@ -7,7 +7,7 @@ Created on Fri Jun 24 09:58:39 2022
 
 import enum
 
-class OperationType(enum.Enum):
+class OperationType(enum.IntEnum):
     BEGIN_CONNECTION = 1
     DOWNLOAD = 2
     UPLOAD = 3
