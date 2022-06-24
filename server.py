@@ -2,53 +2,116 @@ import socket as sk
 import time
 import struct
 import os
+import math
 import zlib
 import utilities as ut
 from operationType import OperationType as OPType
 
 ut.return_list_of_files_in('file_server')
-sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-port = 10000
-server_address = ('localhost', port)
-sock.bind(server_address)
-print('\n\r starting up on %s port %s' % server_address)
-buffer = 4096*4
-timeoutLimit = 3
+class server:
+    sock=0
+    port=0
+    server_address=''
+    buffer=0
+    timeoutLimit = 0
+    path = ''
+    
 
 
-try:
-    while True:
+    def __init__(self,server_address,port):
+       self.port=port
+       self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+       self.server_address=(server_address,port)
+       self.sock.bind(self.server_address)
+       self.timeoutLimit = 10
+       self.buffer=4096*2
+       self.sock.settimeout(self.timeoutLimit)
+       self.path = os.path.join(os.getcwd(), 'file_server')
+       
+    def get_files(self, client):
+        print(' -> Received command : "list files" ')
+        list_directories = os.listdir(self.path)
+        packet=list_directories
+        udp_header = struct.pack("!IIII", OPType.UPLOAD.value, self.port, len(packet), ut.checksum_calculator(packet))
+        sent = self.sock.sendto(udp_header + packet, self.server_address)      
+        print(' -> Sending all the files in the Directory...')
+    
 
-        print('aspetto')
-        data_rcv, address = sock.recvfrom(buffer)
+    def upload(self,filename):
+        print("invio ",filename)
+        message = filename
+        packet=message.encode()
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/self.buffer)
+        udp_header = struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
+        sent = self.sock.sendto(udp_header + packet,self.server_address)
+        count=0
+        file = open(os.path.join(self.path, filename), "rb") 
+        while True:
+            try:
+                print("invio pacchetto ",count)
+                chunk= file.read(self.buffer)
+                packet=chunk
+                udp_header = struct.pack("!IIII", OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
+                sent = self.sock.sendto(udp_header + packet, self.server_address)                         
+                rcv, address = self.sock.recvfrom(self.buffer)
+                received_udp_header = rcv[:16]
+                a,b,c,d = struct.unpack('!IIII', received_udp_header)
+                while a is OPType.NACK.value:
+                    print('errore pacchetto ',count)
+                    sent = self.sock.sendto(udp_header + packet, self.server_address)
+                    rcv, address = self.sock.recvfrom(self.buffer)
+                    received_udp_header = rcv[:16]
+                    a,b,c,d = struct.unpack('!IIII', received_udp_header)
+        
+            except sk.timeout:
+                print('timeout pacchetto ', count)
+                while True:
+                    sent = self.sock.sendto(udp_header + packet, self.server_address)
+                    rcv, address = self.sock.recvfrom(self.buffer)
+                    received_udp_header = rcv[:16]
+                    a,b,c,d = struct.unpack('!IIII', received_udp_header)
+                    if a is OPType.ACK.value:
+                        break
+            count+=1
+            if count==tot_packs:
+                print("inviati ",count," su ",tot_packs)
+                break
+            
+        file.close()
+        message = 'inviato tutto'
+        packet=message.encode()
+        udp_header = struct.pack("!IIII", OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
+        sent = self.sock.sendto(udp_header + packet, self.server_address)
+        self.sock.settimeout(None)
+    
+    def download(self):
+        data_rcv, address = self.sock.recvfrom(self.buffer)
         udp_header = data_rcv[:16]
         data = data_rcv[16:]
         udp_header = struct.unpack("!IIII", udp_header)
         correct_checksum = udp_header[3]
         checksum = ut.checksum_calculator(data)
-        print(data.decode('utf8'))
-
         if correct_checksum != checksum:
             print('arrivato corrotto')
         elif data:
-            print('connessione stabilità')
+            print('scarico',data.decode('utf8'))
             count = 0
-            sock.settimeout(timeoutLimit)
-            file = open(data.decode('utf8'), "wb")
-            try:
-                while True:
-
-                    data_rcv, address = sock.recvfrom(buffer)
+            self.sock.settimeout(self.timeoutLimit)
+            file = open(os.path.join(self.path,data.decode('utf8')), "wb")
+            
+            while True:
+                try:
+                    data_rcv, address = self.sock.recvfrom(self.buffer)
                     udp_header = data_rcv[:16]
                     data = data_rcv[16:]
                     a, b, c, d = struct.unpack("!IIII", udp_header)
                     correct_checksum = d
                     checksum = ut.checksum_calculator(data)
                     while correct_checksum != checksum or count != b:
-                        print('qualche errore')
+                        print('errore pacchetto ',count)
                         udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
-                        sock.sendto(udp_header, address)
-                        data_rcv, address = sock.recvfrom(buffer)
+                        self.sock.sendto(udp_header, address)
+                        data_rcv, address = self.sock.recvfrom(self.buffer)
                         udp_header = data_rcv[:16]
                         data = data_rcv[16:]
                         a, b, c, d = struct.unpack("!IIII", udp_header)
@@ -56,25 +119,40 @@ try:
                         checksum = ut.checksum_calculator(data)
                     if a is OPType.CLOSE_CONNECTION.value :
                         print("arrivati ", count, " su ", b)
-                        sock.settimeout(None)
+                        self.sock.settimeout(None)
                         break
-                    udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
-                    sock.sendto(udp_header, address)
-                    chunk = data
-                    file.write(chunk)
-                    count += 1
-
-                    print(b)
-                file.close()
-            except sk.timeout:
-                print("timeout")
-                sock.settimeout(None)
-                file.close()
+                except sk.timeout:
+                    print("timeout pacchetto ", count)
+                    while correct_checksum != checksum or count != b:
+                        udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
+                        self.sock.sendto(udp_header, address)
+                        data_rcv, address = self.sock.recvfrom(self.buffer)
+                        udp_header = data_rcv[:16]
+                        data = data_rcv[16:]
+                        a, b, c, d = struct.unpack("!IIII", udp_header)
+                        correct_checksum = d
+                        checksum = ut.checksum_calculator(data)
+                    
+                udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
+                self.sock.sendto(udp_header, address)
+                chunk = data
+                file.write(chunk)
+                count += 1
+                print("arrivato pacchetto " , b)
+            file.close()
+            
         else:
             print('arrivato vuoto')
-
-
-finally:
-    sock.settimeout(None)
-    print('closing socket')
-    sock.close()
+        self.sock.settimeout(None)
+      
+        
+    def close_server(self):
+        self.sock.settimeout(None)
+        print ('closing socket')
+        self.sock.close()
+        
+if __name__ == "__main__":
+    server=server('localhost',10000)
+    #init(client,server_address,port)
+    server.download()
+    server.close_server()
