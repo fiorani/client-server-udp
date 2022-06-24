@@ -23,7 +23,7 @@ sock.settimeout(timeoutLimit)
 print("invio")
 message = 'invio'
 packet=message.encode()
-udp_header = struct.pack("!IIII", OPType.BEGIN_CONNECTION, port, len(packet), ut.checksum_calculator(packet))
+udp_header = struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, port, len(packet), ut.checksum_calculator(packet))
 sent = sock.sendto(udp_header + packet, server_address)
 tot_packs = math.ceil(os.path.getsize(file)/buffer)+1
 count=0
@@ -37,7 +37,7 @@ while True:
         print(count)
         chunk= file.read(buffer)
         packet=chunk
-        udp_header = struct.pack("!IIII", OPType.UPLOAD, count, len(packet), ut.checksum_calculator(packet))
+        udp_header = struct.pack("!IIII", OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
         if var % 3:
             sent = sock.sendto(udp_header + packet, server_address)
         else :
@@ -47,7 +47,7 @@ while True:
         rcv, address = sock.recvfrom(buffer)
         received_udp_header = rcv[:16]
         a,b,c,d = struct.unpack('!IIII', received_udp_header)
-        while a is OPType.NACK:
+        while a is OPType.NACK.value:
             print('qualche errore è successo')
             sent = sock.sendto(udp_header + packet, server_address)
             rcv, address = sock.recvfrom(buffer)
@@ -61,7 +61,7 @@ while True:
             rcv, address = sock.recvfrom(buffer)
             received_udp_header = rcv[:16]
             a,b,c,d = struct.unpack('!IIII', received_udp_header)
-            if a is OPType.ACK:
+            if a is OPType.ACK.value:
                 break
         var+=1
     count+=1
@@ -75,7 +75,7 @@ file.close()
    
 message = 'inviato'
 packet=message.encode()
-udp_header = struct.pack("!IIII", OPType.CLOSE_CONNECTION, tot_packs, len(packet), ut.checksum_calculator(packet))
+udp_header = struct.pack("!IIII", OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
 sent = sock.sendto(udp_header + packet, server_address)
 sock.settimeout(None)
 print ('closing socket')

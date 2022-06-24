@@ -46,7 +46,7 @@ try:
                     checksum = ut.checksum_calculator(data)
                     while correct_checksum != checksum or count != b:
                         print('qualche errore')
-                        udp_header = struct.pack('!IIII', OPType.NACK, count, 0, 0)
+                        udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
                         sock.sendto(udp_header, address)
                         data_rcv, address = sock.recvfrom(buffer)
                         udp_header = data_rcv[:16]
@@ -56,11 +56,11 @@ try:
                         checksum = ut.checksum_calculator(data)
                         if b > count:
                             break
-                    if a == 3 or b > count:
+                    if a is OPType.CLOSE_CONNECTION or b > count:
                         print("arrivati ", count, " su ", b)
                         sock.settimeout(None)
                         break
-                    udp_header = struct.pack('!IIII', OPType.ACK, count, 0, 0)
+                    udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
                     sock.sendto(udp_header, address)
                     chunk = data
                     file.write(chunk)
