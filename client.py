@@ -9,14 +9,6 @@ from operationType import OperationType as OPType
 
 ut.return_list_of_files_in('file_client')
 class client:
-    sock=0
-    port=0
-    buffer=0
-    timeoutLimit = 0
-    server_address=''
-    path = ''
-    
-
 
     def __init__(self,server_address,port):
        self.port=port
@@ -28,6 +20,9 @@ class client:
        
     def get_files_from_server(self):
       self.sock.settimeout(self.timeoutLimit)
+      udp_header = struct.pack('!IIII', OPType.GET_SERVER_FILES.value, 0, 0, 0)
+      print('richiedo lista dei files...')
+      sent = self.sock.sendto(udp_header, self.server_address)
       data_rcv, address = self.sock.recvfrom(self.buffer)
       udp_header = data_rcv[:16]
       data = data_rcv[16:]
@@ -46,7 +41,7 @@ class client:
         message = filename
         packet=message.encode()
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
-        udp_header = struct.pack('!IIII', OPType.DOWNLOAD, 0, len(packet), ut.checksum_calculator(packet))
+        udp_header = struct.pack('!IIII', OPType.DOWNLOAD.value, 0, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,self.server_address)
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
@@ -137,6 +132,7 @@ class client:
         
     def close_client(self):
         message = 'chiusura client'
+        print(message)
         self.sock.close()
     def close_server(self):
         self.sock.settimeout(self.timeoutLimit)
@@ -148,10 +144,10 @@ class client:
         self.sock.settimeout(None)
         
 if __name__ == '__main__':
-    client=client('localhost',8080)
-    #client.get_files_from_server()
-    client.upload('fo.png')
-    client.download('mf.png')
+    client=client('localhost',10000)
+    client.get_files_from_server()
+    #client.upload('diocan.mp4')
+    #client.download('mf.png')
     #client.close_server()
     client.close_client()
     
