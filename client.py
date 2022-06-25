@@ -13,7 +13,8 @@ class client:
 
     def __init__(self,server_address,port):
        self.port=port
-       self.server_address=((server_address,port))
+       self.server_address=(server_address,port)
+       self.server_address2=('localhost',8080)
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -97,6 +98,7 @@ class client:
         packet=message.encode()
         udp_header = struct.pack('!IIII', OPType.UPLOAD.value, 0, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,self.server_address)
+        time.sleep(0.001)
         count = 0
         file = open(os.path.join(self.path,filename), 'wb')
         while True:
@@ -110,7 +112,8 @@ class client:
                 while correct_checksum != checksum or count != b:
                     print('qualche errore pacchetto ',count,'ricevuto pacchetto ',b)
                     udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
-                    self.sock.sendto(udp_header, self.server_address)
+                    self.sock.sendto(udp_header, self.server_address2)
+                    time.sleep(0.001)
                     data_rcv, address = self.sock.recvfrom(self.buffer)
                     udp_header = data_rcv[:16]
                     data = data_rcv[16:]
@@ -126,7 +129,8 @@ class client:
                 while True:
                     try:
                         udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
-                        self.sock.sendto(udp_header, self.server_address)
+                        self.sock.sendto(udp_header, self.server_address2)
+                        time.sleep(0.001)
                         data_rcv, address = self.sock.recvfrom(self.buffer)
                         udp_header = data_rcv[:16]
                         data = data_rcv[16:]
@@ -139,7 +143,8 @@ class client:
                         print('timeout pacchetto ',count)
             print('ricevuto pacchetto ',count)
             udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
-            self.sock.sendto(udp_header, self.server_address)
+            self.sock.sendto(udp_header, self.server_address2)
+            time.sleep(0.001)
             chunk = data
             file.write(chunk)
             count += 1

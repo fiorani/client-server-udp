@@ -19,6 +19,10 @@ class server:
        self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.sock.bind(self.server_address)
+       
+       self.sock2 = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+       self.server_address2=('localhost',8080)
+       self.sock2.bind(self.server_address2)
        self.path = os.path.join(os.getcwd(), 'file_server')
        
     def get_files(self, address):
@@ -34,7 +38,7 @@ class server:
         self.sock.settimeout(None)
 
     def upload(self,filename,address):
-        self.sock.settimeout(self.timeoutLimit)
+        self.sock2.settimeout(self.timeoutLimit)
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
@@ -47,22 +51,25 @@ class server:
                     time.sleep(10)
                     print('perso pacchetto',count)
                 else:
-                    sent = self.sock.sendto(udp_header + packet, address)
-                rcv, address = self.sock.recvfrom(self.buffer)
+                    sent = self.sock2.sendto(udp_header + packet, address)
+                    time.sleep(0.001)
+                rcv, address = self.sock2.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
                 a,b,c,d = struct.unpack('!IIII', received_udp_header)
                 while a is OPType.NACK.value:
                     print('qualche errore è successo pacchetto',count)
-                    sent = self.sock.sendto(udp_header + packet, address)
-                    rcv, address = self.sock.recvfrom(self.buffer)
+                    sent = self.sock2.sendto(udp_header + packet, address)
+                    time.sleep(0.001)
+                    rcv, address = self.sock2.recvfrom(self.buffer)
                     received_udp_header = rcv[:16]
                     a,b,c,d = struct.unpack('!IIII', received_udp_header)
             except sk.timeout:
                 print('timeout pacchetto ',count)
                 while True:
                     try:
-                        sent = self.sock.sendto(udp_header + packet, address)
-                        rcv, address = self.sock.recvfrom(self.buffer)
+                        sent = self.sock2.sendto(udp_header + packet, address)
+                        time.sleep(0.001)
+                        rcv, address = self.sock2.recvfrom(self.buffer)
                         received_udp_header = rcv[:16]
                         a,b,c,d = struct.unpack('!IIII', received_udp_header)
                         if a is OPType.ACK.value:
@@ -78,8 +85,8 @@ class server:
         message = 'inviato'
         packet=message.encode()
         udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
-        sent = self.sock.sendto(udp_header + packet,address)
-        self.sock.settimeout(None)
+        sent = self.sock2.sendto(udp_header + packet,address)
+        self.sock2.settimeout(None)
     
     def download(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
@@ -141,6 +148,7 @@ class server:
 if __name__ == '__main__':
     server=server('localhost',10000)
     while True:
+        server.sock.settimeout(None)
         print('aspetto')
         data_rcv, address = server.sock.recvfrom(server.buffer)
         udp_header = data_rcv[:16]
