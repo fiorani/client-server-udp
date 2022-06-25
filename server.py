@@ -42,7 +42,7 @@ class server:
             try:
                 chunk= file.read(4096*2)
                 packet=chunk
-                udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
+                udp_header = struct.pack('!IIII', OPType.ACK.value, count, len(packet), ut.checksum_calculator(packet))
                 if random.randint(0, 30)==count:
                     time.sleep(10)
                     print('perso pacchetto',count)
