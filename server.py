@@ -13,17 +13,35 @@ ut.return_list_of_files_in('file_server')
 class server:
 
     def __init__(self,server_address,port):
+       self.portsList = [50_000, 50_001, 50_002, 50_003, 50_004, 50_005, 50_006, 50_007, 50_008, 50_009]
        self.port=port
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.sock.bind(self.server_address)
-       
+       self.lock = threading.Lock()
        self.sock2 = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.server_address2=('localhost',8080)
        self.sock2.bind(self.server_address2)
        self.path = os.path.join(os.getcwd(), 'file_server')
+       
+    def occupy_port(self):
+        self.lock.acquire()
+        if len(self.portsList) > 0:
+            #Senza argomenti, pop() rimuove l'ultimo elemento della lista
+            port = self.portsList.pop()
+        else:
+            #nel thread su cui serve occupare la porta controlla sempre che la porta sia != -1
+            port = -1
+        self.lock.release()
+        return port
+    
+    def release_port(self, port):
+        self.lock.acquire()
+        self.portsList.append(port)
+        self.lock.release()  
+    
        
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
