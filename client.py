@@ -24,8 +24,8 @@ class client:
     def get_files_from_server(self):
       self.sock.settimeout(self.timeoutLimit)
       udp_header = struct.pack('!IIII', OPType.GET_SERVER_FILES.value, 0, 0, 0)
-      print('richiedo lista dei files...')
       sent = self.sock.sendto(udp_header, self.server_address)
+      time.sleep(self.sleep)
       data_rcv, address = self.sock.recvfrom(self.buffer)
       udp_header = data_rcv[:16]
       data = data_rcv[16:]
@@ -35,7 +35,7 @@ class client:
       if correct_checksum != checksum:
           print('arrivato corrotto')
       elif data:
-          print('scarico',data.decode('utf8'))
+          print('scarico dal server ',data.decode('utf8'))
       self.sock.settimeout(None)
 
     def upload(self,filename):
@@ -46,24 +46,27 @@ class client:
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         udp_header = struct.pack('!IIII', OPType.DOWNLOAD.value, 0, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,self.server_address)
+        time.sleep(self.sleep)
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
         while True:
             try:
                 chunk= file.read(4096*2)
                 packet=chunk
-                udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
+                udp_header = struct.pack('!IIII', 0, count, len(packet), ut.checksum_calculator(packet))
                 if random.randint(0, 30)==count:
                     time.sleep(10)
                     print('perso pacchetto',count)
                 else:
                     sent = self.sock.sendto(udp_header + packet, self.server_address)
+                    time.sleep(self.sleep)
                 rcv, address = self.sock.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
                 a,b,c,d = struct.unpack('!IIII', received_udp_header)
                 while a is OPType.NACK.value:
                     print('qualche errore è successo pacchetto',count)
                     sent = self.sock.sendto(udp_header + packet, self.server_address)
+                    time.sleep(self.sleep)
                     rcv, address = self.sock.recvfrom(self.buffer)
                     received_udp_header = rcv[:16]
                     a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -73,6 +76,7 @@ class client:
                 while True:
                     try:
                         sent = self.sock.sendto(udp_header + packet, self.server_address)
+                        time.sleep(self.sleep)
                         rcv, address = self.sock.recvfrom(self.buffer)
                         received_udp_header = rcv[:16]
                         a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -86,10 +90,9 @@ class client:
                 print('inviato ',count,' su ',tot_packs)
                 break
         file.close()
-        message = 'inviato'
-        packet=message.encode()
-        udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, tot_packs, len(packet), ut.checksum_calculator(packet))
-        sent = self.sock.sendto(udp_header + packet,self.server_address)
+        udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, tot_packs, 0,0)
+        sent = self.sock.sendto(udp_header ,self.server_address)
+        time.sleep(self.sleep)
         self.sock.settimeout(None)
     
     def download(self,filename):
@@ -172,13 +175,14 @@ class client:
         packet=message.encode()
         udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, 0, len(packet), ut.checksum_calculator(packet))
         sent = self.sock.sendto(udp_header + packet,self.server_address)
+        time.sleep(self.sleep)
         self.sock.settimeout(None)
         
 if __name__ == '__main__':
     client=client('localhost',10000)
     client.get_files_from_server()
-    #client.upload('client.png')
-    client.download('client.png')
-    #client.close_server()
+    client.upload('upload.png')
+    client.download('download.png')
+    client.close_server()
     client.close_client()
     
