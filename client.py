@@ -165,7 +165,7 @@ class client:
 if __name__ == '__main__':
     client=client('localhost',10000)
     client.get_files_from_server()
-    client.upload('client.png')
+    #client.upload('client.png')
     client.download('client.png')
     #client.close_server()
     client.close_client()

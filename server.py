@@ -148,14 +148,14 @@ if __name__ == '__main__':
         a,b,c,d = struct.unpack('!IIII', udp_header)
         print(a,b)
         if a==OPType.UPLOAD.value:
-            server.upload(data.decode('utf8'),address)
+            #server.upload(data.decode('utf8'),address)
+            t = threading.Thread(target=server.upload, args=(data.decode('utf8'),address,))
+            t.start()
         elif a==OPType.GET_SERVER_FILES.value:
             server.get_files(address)
         elif a==OPType.DOWNLOAD.value:
-            #server.download(data.decode('utf8'),address)
-            t = threading.Thread(target=server.download, args=(data.decode('utf8'),address,))
-            t.start()
-            t.join()
+            server.download(data.decode('utf8'),address)
+            
         elif a==OPType.CLOSE_CONNECTION.value:  
             server.close_server()
             break
