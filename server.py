@@ -18,6 +18,7 @@ class server:
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
        self.buffer=4096*4
+       self.sleep=0.001
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.sock.bind(self.server_address)
        self.lock = threading.Lock()
@@ -70,14 +71,14 @@ class server:
                     print('perso pacchetto',count)
                 else:
                     sent = self.sock2.sendto(udp_header + packet, address)
-                    time.sleep(0.001)
+                    time.sleep(self.sleep)
                 rcv, address = self.sock2.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
                 a,b,c,d = struct.unpack('!IIII', received_udp_header)
                 while a is OPType.NACK.value:
                     print('qualche errore è successo pacchetto',count)
                     sent = self.sock2.sendto(udp_header + packet, address)
-                    time.sleep(0.001)
+                    time.sleep(self.sleep)
                     rcv, address = self.sock2.recvfrom(self.buffer)
                     received_udp_header = rcv[:16]
                     a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -86,7 +87,7 @@ class server:
                 while True:
                     try:
                         sent = self.sock2.sendto(udp_header + packet, address)
-                        time.sleep(0.001)
+                        time.sleep(self.sleep)
                         rcv, address = self.sock2.recvfrom(self.buffer)
                         received_udp_header = rcv[:16]
                         a,b,c,d = struct.unpack('!IIII', received_udp_header)
