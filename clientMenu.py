@@ -6,53 +6,49 @@ Created on Fri Jun 24 12:18:54 2022
 """
 
 import tkinter as tkt 
+import server
+import client
 
-window = tkt.Tk()
-window.title('Client')
-messages_frame = tkt.Frame(window)
-my_msg = tkt.StringVar()
-my_msg.set('Enter operation here...')
-scrollbar = tkt.Scrollbar(messages_frame)
+class ui:
+   
+    def __init__(self, client, server):
+        self.window = tkt.Tk()
+        self.window.title('Client')
+        self.messages_frame = tkt.Frame(self.window)
+        self.my_msg = tkt.StringVar()
+        self.my_msg.set('Enter operation here...')
+        self.scrollbar = tkt.Scrollbar(self.messages_frame)
+        self.lbl = tkt.Label(self.window, text = "Choose one from the above")
+        self.lbl.pack()
+        self.operations = ("Get files stored on server", "Download file from the server", "Upload file onto the server", "Close connection with the server")
+        self.msg_list = tkt.Listbox(self.messages_frame, heigh = 15, width = 50, yscrollcommand = self.scrollbar.set, selectmode = "browse")
+        for i in range(0, 4):
+            self.msg_list.insert(i, self.operations[i])    
+        self.scrollbar.pack(side = tkt.RIGHT, fill = tkt.Y)
+        self.msg_list.pack(side = tkt.LEFT, fill = tkt.BOTH)
+        self.msg_list.pack()
+        self.messages_frame.pack()
+        self.entry_field = tkt.Entry(self.window, textvariable = self.my_msg)
+        self.entry_field.pack()
+        self.send_button = tkt.Button(self.window, text = "Send",  command = self.print_selected_item(client, server))
+        self.send_button.pack()
 
-
-lbl = tkt.Label(window, text = "Choose one from the above")
-lbl.pack()
-
-operations = ("Get files stored on server", "Download file from the server", "Upload file onto the server", "Close connection with the server")
-def setup_menu():
-    for i in range(0, 4):
-        msg_list.insert(i, operations[i])    
-
-msg_list = tkt.Listbox(messages_frame, heigh = 15, width = 50, yscrollcommand = scrollbar.set, selectmode = "browse")
-setup_menu()
-
-
+    
+    def choose_operation(self, client, server):
+        if self.msg_list.get(self.msg_list.curselection()) == self.operations[0]:
+            client.get_files()
+        elif msg_list.get(msg_list.curselection()) == operations[1]:
+            print("2")
+        elif msg_list.get(msg_list.curselection()) == operations[2]:
+            print("3")
+        elif msg_list.get(msg_list.curselection()) == operations[3]:
+            print("4")    
     
     
     
-def print_selected_item():
-    if msg_list.get(msg_list.curselection()) == operations[0]:
-        print("1")
-    elif msg_list.get(msg_list.curselection()) == operations[1]:
-        print("2")
-    elif msg_list.get(msg_list.curselection()) == operations[2]:
-        print("3")
-    elif msg_list.get(msg_list.curselection()) == operations[3]:
-        print("4")    
-    
-    
-scrollbar.pack(side = tkt.RIGHT, fill = tkt.Y)
-msg_list.pack(side = tkt.LEFT, fill = tkt.BOTH)
-msg_list.pack()
-messages_frame.pack()
 
-entry_field = tkt.Entry(window, textvariable = my_msg)
-entry_field.pack()
-
-    
-    
-send_button = tkt.Button(window, text = "Send",  command = print_selected_item)
-send_button.pack()
-
-tkt.mainloop()
+if __name__ == '__main__':
+    serv = server('localhost', 10000)
+    client = client('localhost', 10000)
+    tkt.mainloop()
                  
