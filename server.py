@@ -152,9 +152,10 @@ if __name__ == '__main__':
         elif a==OPType.GET_SERVER_FILES.value:
             server.get_files(address)
         elif a==OPType.DOWNLOAD.value:
-            server.download(data.decode('utf8'),address)
-            #t = threading.Thread(target=server.download, args=(data.decode('utf8'),address))
-            #t.start()
+            #server.download(data.decode('utf8'),address)
+            t = threading.Thread(target=server.download, args=(data.decode('utf8'),address,))
+            t.start()
+            t.join()
         elif a==OPType.CLOSE_CONNECTION.value:  
             server.close_server()
             break
