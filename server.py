@@ -4,6 +4,8 @@ import struct
 import os
 import math
 import zlib
+import random
+import threading
 import utilities as ut
 from operationType import OperationType as OPType
 
@@ -33,15 +35,19 @@ class server:
 
     def upload(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
-        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/4096)
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         count=0
         file = open(os.path.join(self.path, filename), 'rb') 
         while True:
             try:
-                chunk= file.read(4096)
+                chunk= file.read(4096*2)
                 packet=chunk
                 udp_header = struct.pack('!IIII', OPType.UPLOAD.value, count, len(packet), ut.checksum_calculator(packet))
-                sent = self.sock.sendto(udp_header + packet, address)
+                if random.randint(0, 30)==count:
+                    time.sleep(10)
+                    print('perso pacchetto',count)
+                else:
+                    sent = self.sock.sendto(udp_header + packet, address)
                 rcv, address = self.sock.recvfrom(self.buffer)
                 received_udp_header = rcv[:16]
                 a,b,c,d = struct.unpack('!IIII', received_udp_header)
@@ -54,12 +60,15 @@ class server:
             except sk.timeout:
                 print('timeout pacchetto ',count)
                 while True:
-                    sent = self.sock.sendto(udp_header + packet, address)
-                    rcv, address = self.sock.recvfrom(self.buffer)
-                    received_udp_header = rcv[:16]
-                    a,b,c,d = struct.unpack('!IIII', received_udp_header)
-                    if a is OPType.ACK.value:
-                        break
+                    try:
+                        sent = self.sock.sendto(udp_header + packet, address)
+                        rcv, address = self.sock.recvfrom(self.buffer)
+                        received_udp_header = rcv[:16]
+                        a,b,c,d = struct.unpack('!IIII', received_udp_header)
+                        if a is OPType.ACK.value:
+                            break
+                    except sk.timeout:
+                        print('timeout pacchetto ',count)
             print('inviato pacchetto ',count)
             count+=1
             if count==tot_packs:
@@ -77,8 +86,8 @@ class server:
         print('scarico',filename)
         count = 0
         file = open(os.path.join(self.path,filename), 'wb')
-        try:
-            while True:
+        while True:
+            try:
                 data_rcv, address = self.sock.recvfrom(self.buffer)
                 udp_header = data_rcv[:16]
                 data = data_rcv[16:]
@@ -86,7 +95,7 @@ class server:
                 correct_checksum = d
                 checksum = ut.checksum_calculator(data)
                 while correct_checksum != checksum or count != b:
-                    print('qualche errore pacchetto ',b)
+                    print('qualche errore pacchetto ',count,'ricevuto pacchetto ',b)
                     udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
                     self.sock.sendto(udp_header, address)
                     data_rcv, address = self.sock.recvfrom(self.buffer)
@@ -99,18 +108,30 @@ class server:
                     print('arrivati ', count, ' su ', b)
                     self.sock.settimeout(None)
                     break
-                udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
-                self.sock.sendto(udp_header,address)
-                chunk = data
-                file.write(chunk)
-                count += 1
-                print('ricevuto pacchetto ',b)
-            file.close()
-            self.sock.settimeout(None)
-        except sk.timeout:
-            print('timeout')
-            self.sock.settimeout(None)
-            file.close()
+            except sk.timeout:
+                print('timeout pacchetto ',count)
+                while True:
+                    try:
+                        udp_header = struct.pack('!IIII', OPType.NACK.value, count, 0, 0)
+                        self.sock.sendto(udp_header, address)
+                        data_rcv, address = self.sock.recvfrom(self.buffer)
+                        udp_header = data_rcv[:16]
+                        data = data_rcv[16:]
+                        a, b, c, d = struct.unpack('!IIII', udp_header)
+                        correct_checksum = d
+                        checksum = ut.checksum_calculator(data)
+                        if count==b:
+                            break
+                    except sk.timeout:
+                        print('timeout pacchetto ',count) 
+            print('ricevuto pacchetto ',count)
+            udp_header = struct.pack('!IIII', OPType.ACK.value, count, 0, 0)
+            self.sock.sendto(udp_header,address)
+            chunk = data
+            file.write(chunk)
+            count += 1
+        file.close()
+        self.sock.settimeout(None)
       
         
     def close_server(self):
@@ -132,6 +153,8 @@ if __name__ == '__main__':
             server.get_files(address)
         elif a==OPType.DOWNLOAD.value:
             server.download(data.decode('utf8'),address)
+            #t = threading.Thread(target=server.download, args=(data.decode('utf8'),address))
+            #t.start()
         elif a==OPType.CLOSE_CONNECTION.value:  
             server.close_server()
             break
