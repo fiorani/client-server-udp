@@ -21,7 +21,7 @@ class client:
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.path = os.path.join(os.getcwd(), 'file_client')
     
-    def get_files(self, address):
+    def get_self_files(self):
         list_directories = os.listdir(self.path)
         listToStr = ''.join([(str(directory) + '\n') for directory in list_directories])
         print('file ' ,listToStr)
