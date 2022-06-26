@@ -3,13 +3,12 @@ import time
 import struct
 import os
 import math
-import zlib
 import random
 import threading
 import utilities as ut
 from operationType import OperationType as OPType
 
-class server:
+class Server:
 
     def __init__(self,server_address,port):
        self.portsList = [50_000, 50_001, 50_002, 50_003, 50_004, 50_005, 50_006, 50_007, 50_008, 50_009]
@@ -202,7 +201,7 @@ class server:
                 break
     
 if __name__ == '__main__':
-    server=server('localhost',10000)
+    server=Server('localhost',10000)
     while True:
         server.sock.settimeout(None)
         print('aspetto')

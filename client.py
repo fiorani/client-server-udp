@@ -5,11 +5,10 @@ import os
 import math
 import utilities as ut
 import random
-import threading
 from operationType import OperationType as OPType
 
 ut.return_list_of_files_in('file_client')
-class client:
+class Client:
 
     def __init__(self,server_address,port):
        self.port=port
@@ -185,7 +184,7 @@ class client:
         self.sock.settimeout(None)
         
 if __name__ == '__main__':
-    client=client('localhost',10000)
+    client=Client('localhost',10000)
     client.get_files_from_server()
     client.upload('upload.png')
     client.download('download.png')

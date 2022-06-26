@@ -1,69 +1,82 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 24 12:18:54 2022
+import tkinter as tk
+import tkinter.font as tkFont
+from client import Client
+from server import Server
+import threading 
 
-@author: pnmat
-"""
-
-import tkinter as tkt 
-from server import server
-from client import client
-import threading
-import time
-
-class ui:
-   
+class Ui:
+    
     def __init__(self, client):
-        self.window = tkt.Tk()
-        self.window.title('Client')
-        self.messages_frame = tkt.Frame(self.window)
-        self.my_msg = tkt.StringVar()
-        self.my_msg.set('Enter operation here...')
-        self.scrollbar = tkt.Scrollbar(self.messages_frame)
-        self.lbl = tkt.Label(self.window, text = "Choose one from the above")
-        self.lbl.pack()
-        self.operations = ("Get files stored on server", "Download file from the server", "Upload file onto the server", "Close connection with the server")
-        self.msg_list = tkt.Listbox(self.messages_frame, heigh = 15, width = 50, yscrollcommand = self.scrollbar.set, selectmode = "browse")
-        self.set_msg_list(self.operations)
-        self.scrollbar.pack(side = tkt.RIGHT, fill = tkt.Y)
-        self.msg_list.pack(side = tkt.LEFT, fill = tkt.BOTH)
-        self.msg_list.pack()
-        self.messages_frame.pack()
-        self.entry_field = tkt.Entry(self.window, textvariable = self.my_msg)
-        self.entry_field.pack()
-        self.send_button = tkt.Button(self.window, text = "Send",  command = lambda: self.choose_operation(client))
-        self.send_button.pack()
-        tkt.mainloop()
+        #setting title
+        self.root=tk.Tk()
+        self.root.title("Client")
+        #setting window size
+        self.width=883
+        self.height=566
+        self.screenwidth = self.root.winfo_screenwidth()
+        self.screenheight = self.root.winfo_screenheight()
+        self.alignstr = '%dx%d+%d+%d' % (self.width, self.height, (self.screenwidth - self.width) / 2, (self.screenheight - self.height) / 2)
+        self.root.geometry(self.alignstr)
+        self.root.resizable(width=False, height=False)
 
-    def clear_msg_list(self):
-        self.msg_list.delete(0, tkt.END)
+        self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti su server")
+        self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
+        self.box_setArguments(self.BoxServerFiles, list(client.get_files_from_server().split("\n")))
         
-    def set_msg_list(self, list):
-        for i in range(0, len(list)):
-            self.msg_list.insert(i, list[i]) 
-            
-    def choose_operation(self, client):
-        if self.msg_list.get(self.msg_list.curselection()) == self.operations[0]:
-            self.clear_msg_list()
-            files = list(client.get_files_from_server().split("\n"))            
-            if len(files) == 0:
-                exit(1)
-            self.set_msg_list(files)  
-            self.clear_msg_list()
-            self.set_msg_list(self.operations)
-        elif self.msg_list.get(self.msg_list.curselection()) == self.operations[1]:
-            print("2")
-        elif self.msg_list.get(self.msg_list.curselection()) == self.operations[2]:
-            print("3")
-        elif self.msg_list.get(self.msg_list.curselection()) == self.operations[3]:
-            print("4")    
+        self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
+        self.OperationBox=self.setup_box(300, 40, 282, 225)
+        self.box_setArguments(self.OperationBox, ("Download file from the server", "Upload file onto the server", "Close connection with the server"))
+        
+        self.LabelFileClient=self.setup_label(590, 10, 120, 30, "File presenti sul pc")
+        self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
+        self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
+        
+        
+        self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", self.Esegui_command)
+        self.root.mainloop()
+        
+    def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
+        Box = tk.Listbox(self.root)
+        Box["borderwidth"] = "1px"
+        ft = tkFont.Font(family='Times',size=10)
+        Box["font"] = ft
+        Box["fg"] = "#333333"
+        Box["justify"] = "center"
+        Box.place(x=xPlacement, y=yPlacement, width=boxWidth, height=boxHeight)
+        return Box
     
+    def setup_label(self, xPlacement, yPlacement, labelWidth, labelHeight, text):
+        lbl=tk.Label(self.root)
+        ft = tkFont.Font(family='Times',size=10)
+        lbl["font"] = ft
+        lbl["fg"] = "#333333"
+        lbl["justify"] = "center"
+        lbl["text"] = text
+        lbl.place(x=xPlacement,y=yPlacement,width=labelWidth,height=labelHeight)
+        return lbl
     
+    def setup_btn(self, xPlacement, yPlacement, btnWidth, btnHeight, text, command):
+        Btn=tk.Button(self.root)
+        Btn["bg"] = "#f0f0f0"
+        ft = tkFont.Font(family='Times',size=10)
+        Btn["font"] = ft
+        Btn["fg"] = "#000000"
+        Btn["justify"] = "center"
+        Btn["text"] = text
+        Btn.place(x=xPlacement,y=yPlacement,width=btnWidth,height=btnHeight)
+        Btn["command"] = command
+        return Btn
+        
+        
+    def box_setArguments(self, box, elementsList):
+        box.delete(0, tk.END)
+        for i in range(0, len(elementsList)):
+            box.insert(i, elementsList[i]) 
     
+    def Esegui_command(self):
+        print("esegui")
 
-if __name__ == '__main__':
-    t = threading.Thread(target=server, args=('localhost', 10000))
+if __name__ == "__main__":
+    t = threading.Thread(target=Server, args=('localhost', 10000))
     t.start()
-    client = client('localhost', 10000)
-    ui = ui(client)
-                 
+    ui = Ui(Client('localhost', 10000))
