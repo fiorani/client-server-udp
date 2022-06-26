@@ -32,12 +32,12 @@ class client:
       udp_header = struct.unpack('!IIII', udp_header)
       correct_checksum = udp_header[3]
       checksum = ut.checksum_calculator(data)
-      if correct_checksum != checksum:
-          print('arrivato corrotto')
-      elif data:
-          print('scarico dal server ',data.decode('utf8'))
       self.sock.settimeout(None)
-
+      if correct_checksum != checksum:
+          return ""
+      elif data:
+          return data.decode('utf8')
+      
     def upload(self,filename):
         self.sock.settimeout(self.timeoutLimit)
         print('invio nome al server ',filename)
