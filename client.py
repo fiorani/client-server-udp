@@ -175,8 +175,7 @@ class Client:
       
         
     def close_client(self):
-        message = 'chiusura client'
-        print(message)
+        print('chiusura client')
         self.sock.close()
     def close_server(self):
         self.sock.settimeout(self.timeoutLimit)
@@ -191,8 +190,8 @@ class Client:
 #if __name__ == '__main__':
 #    client=Client('localhost',10000)
 #    client.get_files_from_server()
-#     client.upload('upload.png')
-#     client.download('download.png')
-# #     client.close_server()
- #    client.close_client()
+#    client.upload('upload.png')
+#    client.download('download.png')
+#    client.close_server()
+#    client.close_client()
     

@@ -98,9 +98,7 @@ class Ui:
     def Esegui_command(self, client):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
-                t = threading.Thread(target = client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection())))
-                t.start()
-                t.join()
+                client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
                 client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
