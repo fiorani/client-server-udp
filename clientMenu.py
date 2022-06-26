@@ -9,6 +9,7 @@ import tkinter as tkt
 from server import server
 from client import client
 import threading
+import time
 
 class ui:
    
@@ -40,12 +41,16 @@ class ui:
     def set_msg_list(self, list):
         for i in range(0, len(list)):
             self.msg_list.insert(i, list[i]) 
-
+            
     def choose_operation(self, client):
         if self.msg_list.get(self.msg_list.curselection()) == self.operations[0]:
             self.clear_msg_list()
             files = list(client.get_files_from_server().split("\n"))            
-            self.set_msg_list(files)
+            if len(files) == 0:
+                exit(1)
+            self.set_msg_list(files)  
+            self.clear_msg_list()
+            self.set_msg_list(self.operations)
         elif self.msg_list.get(self.msg_list.curselection()) == self.operations[1]:
             print("2")
         elif self.msg_list.get(self.msg_list.curselection()) == self.operations[2]:
