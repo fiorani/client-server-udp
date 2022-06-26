@@ -24,6 +24,7 @@ class server:
        self.sock.bind(self.server_address)
        self.lock = threading.Lock()
        self.path = os.path.join(os.getcwd(), 'file_server')
+       self.server_main_loop()
        
     def occupy_port(self):
         self.lock.acquire()
@@ -112,6 +113,7 @@ class server:
         sent = sock.sendto(udp_header ,address)
         time.sleep(self.sleep)
         sock.settimeout(None)
+        self.release_port(port)
     
     def download(self,filename,address):
         self.sock.settimeout(self.timeoutLimit)
@@ -172,7 +174,28 @@ class server:
     def close_server(self):
         print ('closing socket')
         self.sock.close()
-        
+    
+    
+    def server_main_loop(self):
+        while True:
+            self.sock.settimeout(None)
+            print('aspetto')
+            data_rcv, address = self.sock.recvfrom(self.buffer)
+            udp_header = data_rcv[:16]
+            data = data_rcv[16:]
+            a,b,c,d = struct.unpack('!IIII', udp_header)
+            if a==OPType.UPLOAD.value:
+                #server.upload(data.decode('utf8'),address)
+                t = threading.Thread(target=self.upload, args=(data.decode('utf8'),address,))
+                t.start()
+            elif a==OPType.GET_SERVER_FILES.value:
+                self.get_files(address)
+            elif a==OPType.DOWNLOAD.value:
+                self.download(data.decode('utf8'),address)               
+            elif a==OPType.CLOSE_CONNECTION.value:  
+                self.close_server()
+                break
+    
 if __name__ == '__main__':
     server=server('localhost',10000)
     while True:
