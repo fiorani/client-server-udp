@@ -24,7 +24,7 @@ class Server:
        self.directoryName='file_server'
        if not os.path.exists(os.path.join(os.getcwd(), self.directoryName)):
           os.mkdir(os.path.join(os.getcwd(), self.directoryName)) 
-       self.path = os.path.join(os.getcwd(), 'file_server')
+       self.path = os.path.join(os.getcwd(), self.directoryName)
        self.server_main_loop()
        
     def occupy_port(self):
