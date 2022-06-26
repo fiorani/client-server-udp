@@ -86,26 +86,26 @@ class Ui:
         tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
         tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
         
+    def refresh_boxes(self, client):
+        self.box_setArguments(self.BoxServerFiles, list(client.get_files_from_server().split("\n")))
+        self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
     
     def Esegui_command(self, client):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
-                print(self.OperationBox.get(self.OperationBox.curselection()))
-                #client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
+                client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
-                print(self.OperationBox.get(self.OperationBox.curselection()))
-                #client.upload(self.BoxClientFiles.get(self.BoxCliecurselection()))
+                client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
-                print(self.OperationBox.get(self.OperationBox.curselection()))
-                #client.close_server()
-                #client.close_client()
-                #exit(1)
+               client.close_server()
+               client.close_client()
             self.clear_boxes_selections()
+            #self.refresh_boxes(client)
         else:
             self.error_dialog_open()
             
 
 if __name__ == "__main__":
-    t = threading.Thread(target=Server, args=('localhost', 10000))
+    t = threading.Thread(target=Server, args=('localhost', 10000,))
     t.start()
     ui = Ui(Client('localhost', 10000))

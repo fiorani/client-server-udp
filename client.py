@@ -188,11 +188,11 @@ class Client:
         time.sleep(self.sleep)
         self.sock.settimeout(None)
         
-if __name__ == '__main__':
-    client=Client('localhost',10000)
-    client.get_files_from_server()
-    client.upload('upload.png')
-    client.download('download.png')
-    client.close_server()
-    client.close_client()
+#if __name__ == '__main__':
+#    client=Client('localhost',10000)
+#    client.get_files_from_server()
+#     client.upload('upload.png')
+#     client.download('download.png')
+# #     client.close_server()
+ #    client.close_client()
     
