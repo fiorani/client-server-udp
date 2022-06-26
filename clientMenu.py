@@ -19,7 +19,7 @@ class Ui:
         self.root.geometry(self.alignstr)
         self.root.resizable(width=False, height=False)
         
-        self.operations = ("Download file from the server", "Upload file onto the server", "Close connection with the server")
+        self.operations = ("Download file from the server", "Upload file onto the server","stop server", "Close connection with the server")
         
         self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti su server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
@@ -103,6 +103,7 @@ class Ui:
                 client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
                client.close_server()
+            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
                client.close_client()
                self.root.destroy()
             self.clear_boxes_selections()
@@ -111,6 +112,4 @@ class Ui:
             
 
 if __name__ == "__main__":
-    t_server = threading.Thread(target=Server, args=('localhost', 10000,))
-    t_server.start()
     ui = Ui(Client('localhost', 10000))
