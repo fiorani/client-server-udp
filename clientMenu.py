@@ -32,8 +32,7 @@ class Ui:
         self.LabelFileClient=self.setup_label(590, 10, 120, 30, "File presenti sul pc")
         self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
         self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
-        
-        
+               
         self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
         self.root.mainloop()
         
@@ -68,22 +67,43 @@ class Ui:
         Btn.place(x=xPlacement,y=yPlacement,width=btnWidth,height=btnHeight)
         Btn["command"] = command
         return Btn
-        
-        
+               
     def box_setArguments(self, box, elementsList):
         box.delete(0, tk.END)
         for el in elementsList:
             box.insert(tk.END, el) 
     
+    def clear_boxes_selections(self):
+        self.OperationBox.selection_clear(0, tk.END)
+        self.BoxServerFiles.selection_clear(0, tk.END)
+        self.BoxClientFiles.selection_clear(0, tk.END)
+    
+    def error_dialog_open(self):
+        errDialog = tk.Tk()
+        errDialog.title("Error")
+        errDialog.geometry("200x100")
+        errDialog.resizable(width=False, height=False)
+        tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
+        tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
+        
+    
     def Esegui_command(self, client):
-        if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
-            client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
-        elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
-            client.upload(self.BoxClientFiles.get(self.BoxCliecurselection()))
-        elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
-            client.close_server()
-            client.close_client()
-            exit(1)
+        if self.OperationBox.curselection():
+            if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
+                print(self.OperationBox.get(self.OperationBox.curselection()))
+                #client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
+            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
+                print(self.OperationBox.get(self.OperationBox.curselection()))
+                #client.upload(self.BoxClientFiles.get(self.BoxCliecurselection()))
+            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
+                print(self.OperationBox.get(self.OperationBox.curselection()))
+                #client.close_server()
+                #client.close_client()
+                #exit(1)
+            self.clear_boxes_selections()
+        else:
+            self.error_dialog_open()
+            
 
 if __name__ == "__main__":
     t = threading.Thread(target=Server, args=('localhost', 10000))
