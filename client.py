@@ -20,7 +20,13 @@ class client:
        self.sleep=0.001
        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.path = os.path.join(os.getcwd(), 'file_client')
-       
+    
+    def get_files(self, address):
+        list_directories = os.listdir(self.path)
+        listToStr = ''.join([(str(directory) + '\n') for directory in list_directories])
+        print('file ' ,listToStr)
+        return listToStr
+    
     def get_files_from_server(self):
       self.sock.settimeout(self.timeoutLimit)
       udp_header = struct.pack('!IIII', OPType.GET_SERVER_FILES.value, 0, 0, 0)
