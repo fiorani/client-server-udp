@@ -79,13 +79,14 @@ class Ui:
         if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
             client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
         elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
-            client.upload(self.BoxClientFiles.get(self.BoxCliecurselection()))
+            client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
         elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
             client.close_server()
             client.close_client()
             exit(1)
+        
 
 if __name__ == "__main__":
-    t = threading.Thread(target=Server, args=('localhost', 10000))
+    t = threading.Thread(target=Server, args=('localhost', 10000,))
     t.start()
     ui = Ui(Client('localhost', 10000))

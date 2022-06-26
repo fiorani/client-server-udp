@@ -57,7 +57,7 @@ class Server:
         
     def upload(self,filename,address):
         if filename in os.listdir(self.path):
-            port=server.occupy_port()
+            port=self.occupy_port()
             self.sock.settimeout(self.timeoutLimit)
             udp_header = struct.pack('!IIII', 0, port, 0, 0)
             sent = self.sock.sendto(udp_header , address)  
@@ -200,23 +200,23 @@ class Server:
                 self.close_server()
                 break
     
-if __name__ == '__main__':
-    server=Server('localhost',10000)
-    while True:
-        server.sock.settimeout(None)
-        print('aspetto')
-        data_rcv, address = server.sock.recvfrom(server.buffer)
-        udp_header = data_rcv[:16]
-        data = data_rcv[16:]
-        a,b,c,d = struct.unpack('!IIII', udp_header)
-        if a==OPType.UPLOAD.value:
-            #server.upload(data.decode('utf8'),address)
-            t = threading.Thread(target=server.upload, args=(data.decode('utf8'),address,))
-            t.start()
-        elif a==OPType.GET_SERVER_FILES.value:
-            server.get_files(address)
-        elif a==OPType.DOWNLOAD.value:
-            server.download(data.decode('utf8'),address)
-        elif a==OPType.CLOSE_CONNECTION.value:  
-            server.close_server()
-            break
+# if __name__ == '__main__':
+#     server=Server('localhost',10000)
+#     while True:
+#         server.sock.settimeout(None)
+#         print('aspetto')
+#         data_rcv, address = server.sock.recvfrom(server.buffer)
+#         udp_header = data_rcv[:16]
+#         data = data_rcv[16:]
+#         a,b,c,d = struct.unpack('!IIII', udp_header)
+#         if a==OPType.UPLOAD.value:
+#             #server.upload(data.decode('utf8'),address)
+#             t = threading.Thread(target=server.upload, args=(data.decode('utf8'),address,))
+#             t.start()
+#         elif a==OPType.GET_SERVER_FILES.value:
+#             server.get_files(address)
+#         elif a==OPType.DOWNLOAD.value:
+#             server.download(data.decode('utf8'),address)
+#         elif a==OPType.CLOSE_CONNECTION.value:  
+#             server.close_server()
+#             break
