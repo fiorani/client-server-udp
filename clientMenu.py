@@ -18,25 +18,27 @@ class Ui:
         self.alignstr = '%dx%d+%d+%d' % (self.width, self.height, (self.screenwidth - self.width) / 2, (self.screenheight - self.height) / 2)
         self.root.geometry(self.alignstr)
         self.root.resizable(width=False, height=False)
-
+        
+        self.operations = ("Download file from the server", "Upload file onto the server", "Close connection with the server")
+        
         self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti su server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         self.box_setArguments(self.BoxServerFiles, list(client.get_files_from_server().split("\n")))
         
         self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
         self.OperationBox=self.setup_box(300, 40, 282, 225)
-        self.box_setArguments(self.OperationBox, ("Download file from the server", "Upload file onto the server", "Close connection with the server"))
+        self.box_setArguments(self.OperationBox, self.operations)
         
         self.LabelFileClient=self.setup_label(590, 10, 120, 30, "File presenti sul pc")
         self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
         self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
         
         
-        self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", self.Esegui_command)
+        self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
         self.root.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
-        Box = tk.Listbox(self.root)
+        Box = tk.Listbox(self.root, exportselection = 0)
         Box["borderwidth"] = "1px"
         ft = tkFont.Font(family='Times',size=10)
         Box["font"] = ft
@@ -70,11 +72,18 @@ class Ui:
         
     def box_setArguments(self, box, elementsList):
         box.delete(0, tk.END)
-        for i in range(0, len(elementsList)):
-            box.insert(i, elementsList[i]) 
+        for el in elementsList:
+            box.insert(tk.END, el) 
     
-    def Esegui_command(self):
-        print("esegui")
+    def Esegui_command(self, client):
+        if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
+            client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
+        elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
+            client.upload(self.BoxClientFiles.get(self.BoxCliecurselection()))
+        elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
+            client.close_server()
+            client.close_client()
+            exit(1)
 
 if __name__ == "__main__":
     t = threading.Thread(target=Server, args=('localhost', 10000))
