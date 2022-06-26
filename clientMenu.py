@@ -33,7 +33,9 @@ class Ui:
         self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
         self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
                
-        self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
+        #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
+        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.run_threaded_command(client))
+        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes(client))
         self.root.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
@@ -67,7 +69,10 @@ class Ui:
         Btn.place(x=xPlacement,y=yPlacement,width=btnWidth,height=btnHeight)
         Btn["command"] = command
         return Btn
-               
+    
+    def run_threaded_command(self, client):
+        threading.Thread(target=self.Esegui_command, args = (client, )).start()
+           
     def box_setArguments(self, box, elementsList):
         box.delete(0, tk.END)
         for el in elementsList:
@@ -93,19 +98,21 @@ class Ui:
     def Esegui_command(self, client):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
-                client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
+                t = threading.Thread(target = client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection())))
+                t.start()
+                t.join()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
                 client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
                client.close_server()
                client.close_client()
+               self.root.destroy()
             self.clear_boxes_selections()
-            #self.refresh_boxes(client)
         else:
             self.error_dialog_open()
             
 
 if __name__ == "__main__":
-    t = threading.Thread(target=Server, args=('localhost', 10000,))
-    t.start()
+    t_server = threading.Thread(target=Server, args=('localhost', 10000,))
+    t_server.start()
     ui = Ui(Client('localhost', 10000))
