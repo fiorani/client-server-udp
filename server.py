@@ -68,6 +68,7 @@ class Server:
         
     def upload(self,filename,port):
         if filename in os.listdir(self.path):
+            print ('upload client porta',port)
             sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
             server_address=(self.server_name,port)
             sock.bind(server_address)
@@ -113,6 +114,7 @@ class Server:
     
     def download(self,filename,port):
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+        print ('download client porta',port)
         server_address=(self.server_name,port)
         sock.bind(server_address)
         sock.settimeout(self.timeoutLimit)

@@ -56,6 +56,7 @@ class Client:
     def upload(self,filename):
         if filename in os.listdir(self.path):
             self.sock.settimeout(self.timeoutLimit)
+            print ('upload client porta',self.client_address[1])
             print('invio nome al server ',filename)
             tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
             self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,self.client_address[1])
@@ -98,6 +99,7 @@ class Client:
     
     def download(self,filename):
         self.sock.settimeout(self.timeoutLimit)
+        print ('upload client porta',self.client_address[1])
         print('invia nome al server ',filename)
         self.send(self.sock,self.server_address,filename.encode(),OPType.UPLOAD.value,self.client_address[1])
         self.send(self.sock,self.client_address,'invio il nuovo address'.encode(),0,0)
