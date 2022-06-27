@@ -5,6 +5,8 @@ import os
 import math
 import utilities as ut
 import random
+import threading
+from clientMenu import Ui
 from operationType import OperationType as OPType
 
 class Client:
@@ -16,7 +18,6 @@ class Client:
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.sleep=0.001
-       self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
        self.directoryName='file_client'
        if not os.path.exists(os.path.join(os.getcwd(), self.directoryName)):
           os.mkdir(os.path.join(os.getcwd(), self.directoryName)) 
@@ -173,25 +174,16 @@ class Client:
         self.sock.settimeout(None)
         
       
+    def start_client(self):
+        print('avvio client')
+        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         
     def close_client(self):
         print('chiusura client')
         self.sock.close()
-    def close_server(self):
-        self.sock.settimeout(self.timeoutLimit)
-        print ('closing socket')
-        message = 'chiusura server'
-        packet=message.encode()
-        udp_header = struct.pack('!IIII', OPType.CLOSE_CONNECTION.value, 0, len(packet), ut.checksum_calculator(packet))
-        sent = self.sock.sendto(udp_header + packet,self.server_address)
-        time.sleep(self.sleep)
-        self.sock.settimeout(None)
         
-#if __name__ == '__main__':
-#    client=Client('localhost',10000)
-#    client.get_files_from_server()
-#    client.upload('upload.png')
-#    client.download('download.png')
-#    client.close_server()
-#    client.close_client()
+        
+if __name__ == '__main__':
+    client=Client('localhost',10000)
+    threading.Thread(target=Ui,args=(client,)).start()
     

@@ -2,12 +2,13 @@ import tkinter as tk
 import tkinter.font as tkFont
 import threading 
 
+
 class Ui:
     
-    def __init__(self, client):
+    def __init__(self,server):
         #setting title
         self.root=tk.Tk()
-        self.root.title("Client")
+        self.root.title("server")
         #setting window size
         self.width=883
         self.height=566
@@ -16,8 +17,7 @@ class Ui:
         self.alignstr = '%dx%d+%d+%d' % (self.width, self.height, (self.screenwidth - self.width) / 2, (self.screenheight - self.height) / 2)
         self.root.geometry(self.alignstr)
         self.root.resizable(width=False, height=False)
-        
-        self.operations = ("Download file from the server", "Upload file onto the server","start client", "Close connection with the server")
+        self.operations = ("start server", "stop server")
         
         self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti su server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
@@ -26,12 +26,11 @@ class Ui:
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.LabelFileClient=self.setup_label(590, 10, 120, 30, "File presenti sul pc")
-        self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
-               
-        #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
-        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.run_threaded_command(client))
-        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes(client))
+        self.server=server
+        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes(self.server))
+        #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(server))
+        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.Esegui_command(self.server))
+        
         self.root.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
@@ -65,9 +64,6 @@ class Ui:
         Btn.place(x=xPlacement,y=yPlacement,width=btnWidth,height=btnHeight)
         Btn["command"] = command
         return Btn
-    
-    def run_threaded_command(self, client):
-        threading.Thread(target=self.Esegui_command, args = (client, )).start()
            
     def box_setArguments(self, box, elementsList):
         box.delete(0, tk.END)
@@ -77,7 +73,6 @@ class Ui:
     def clear_boxes_selections(self):
         self.OperationBox.selection_clear(0, tk.END)
         self.BoxServerFiles.selection_clear(0, tk.END)
-        self.BoxClientFiles.selection_clear(0, tk.END)
     
     def error_dialog_open(self):
         errDialog = tk.Tk()
@@ -86,24 +81,18 @@ class Ui:
         errDialog.resizable(width=False, height=False)
         tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
         tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
-        
-    def refresh_boxes(self, client):
-        self.box_setArguments(self.BoxServerFiles, list(client.get_files_from_server().split("\n")))
-        self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
+    def run_threaded_command(self,server):
+        threading.Thread(target=self.Esegui_command, args = (server,)).start()
+    def refresh_boxes(self, server):
+        self.box_setArguments(self.BoxServerFiles, list(server.get_self_files().split("\n")))
     
-    def Esegui_command(self, client):
+    def Esegui_command(self,server):
         if self.OperationBox.curselection():
-            if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
-                client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
-            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
-                client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
-            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
-               client.start_client()
-            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
-               client.close_client()
-               self.root.destroy()
+            if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
+                server.start_server()
+            elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
+                server.close_server()
             self.clear_boxes_selections()
         else:
             self.error_dialog_open()
             
-

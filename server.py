@@ -6,6 +6,7 @@ import math
 import random
 import threading
 import utilities as ut
+from serverMenu import Ui
 from operationType import OperationType as OPType
 
 class Server:
@@ -18,14 +19,12 @@ class Server:
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.sleep=0.001
-       self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-       self.sock.bind(self.server_address)
        self.lock = threading.Lock()
        self.directoryName='file_server'
        if not os.path.exists(os.path.join(os.getcwd(), self.directoryName)):
           os.mkdir(os.path.join(os.getcwd(), self.directoryName)) 
        self.path = os.path.join(os.getcwd(), self.directoryName)
-       self.server_main_loop()
+       
        
     def occupy_port(self):
         self.lock.acquire()
@@ -43,7 +42,13 @@ class Server:
         self.portsList.append(port)
         self.lock.release()  
     
-       
+     
+    def get_self_files(self):
+        list_directories = os.listdir(self.path)
+        listToStr = ''.join([(str(directory) + '\n') for directory in list_directories])
+        print('file ' ,listToStr)
+        return listToStr
+        
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
         list_directories = os.listdir(self.path)
@@ -174,11 +179,15 @@ class Server:
         file.close()
         self.sock.settimeout(None)
       
-        
+    def start_server(self):
+        print ('start socket')
+        self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+        self.sock.bind(self.server_address)
+        threading.Thread(target=self.server_main_loop).start()
+    
     def close_server(self):
         print ('closing socket')
         self.sock.close()
-    
     
     def server_main_loop(self):
         while True:
@@ -202,3 +211,5 @@ class Server:
     
 if __name__ == '__main__':
      server=Server('localhost',10000)
+     threading.Thread(target=Ui,args=(server,)).start()
+         
