@@ -24,8 +24,7 @@ class Client:
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
     def get_self_files(self):
-        list_directories = os.listdir(self.path)
-        listToStr = ''.join([(str(directory) + '\n') for directory in list_directories])
+        listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
         print('file ' ,listToStr)
         return listToStr
     
@@ -184,6 +183,6 @@ class Client:
         
         
 if __name__ == '__main__':
-    client=Client('localhost',10000)
+    client=Client('10.0.0.20',10000)
     threading.Thread(target=Ui,args=(client,)).start()
     
