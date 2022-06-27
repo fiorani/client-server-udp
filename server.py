@@ -54,7 +54,7 @@ class Server:
      
     def get_self_files(self):
         listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
-        print('file nel server ' ,listToStr)
+        print('file ' ,listToStr)
         return listToStr
         
     def get_files(self, address):
@@ -64,27 +64,28 @@ class Server:
         self.send(self.sock,address,listToStr.encode(),OPType.GET_SERVER_FILES.value,0)
         self.sock.settimeout(None)
         
-    def upload(self,filename,port):
+    def upload(self,filename,address):
         if filename in os.listdir(self.path):
-            print ('upload client porta',port)
-            sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+            port=self.occupy_port()
+            self.sock.settimeout(self.timeoutLimit)
+            self.send(self.sock,address,'invio porta'.encode(),0,port)
+            self.sock.settimeout(None)
             server_address=(self.server_address[0],port)
+            sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
             sock.bind(server_address)
             sock.settimeout(self.timeoutLimit)        
             tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
             count=0
-            data,address,checksum,a,b,c,d = self.rcv(sock)
             print('invio al client  ' ,filename)
             with open(os.path.join(self.path, filename), 'rb') as file:
                 while True:
                     try:
                         chunk= file.read(4096*2)
-                        #if random.randint(0, 30)==count:
-                        #    time.sleep(10)
-                        #    print('perso pacchetto',count)
-                        #else:
-                        #    self.send(sock,address,chunk,0,count)
-                        self.send(sock,address,chunk,0,count)
+                        if random.randint(0, 30)==count:
+                            time.sleep(10)
+                            print('perso pacchetto',count)
+                        else:
+                            self.send(sock,address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(sock)
                         while a is OPType.NACK.value:
                             print('qualche errore è successo pacchetto',count)
@@ -105,15 +106,19 @@ class Server:
                     if count==tot_packs:
                         print('inviati ',count,' su ',tot_packs)
                         break  
+                self.release_port(port)
         else:
             print('non presente  ' ,filename)
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         sock.settimeout(None)
     
-    def download(self,filename,port):
+    def download(self,filename,address):
+        port=self.occupy_port()
+        self.sock.settimeout(self.timeoutLimit)
+        self.send(self.sock,address,'invio porta'.encode(),0,port)
+        self.sock.settimeout(None)
+        server_address=(self.server_server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-        print ('download client porta',port)
-        server_address=(self.server_address[0],port)
         sock.bind(server_address)
         sock.settimeout(self.timeoutLimit)
         print('scarico dal client',filename)
@@ -144,28 +149,18 @@ class Server:
                 self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
                 file.write(data)
                 count += 1
-        sock.settimeout(None)
+            self.release_port(port)
+            sock.settimeout(None)
       
     def start_server(self):
-        print ('avvio server')
+        print ('start socket')
         self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         self.sock.bind(self.server_address)
         threading.Thread(target=self.server_main_loop).start()
     
     def close_server(self):
-        print ('spengo server')
+        print ('closing socket')
         self.sock.close()
-        
-    def connect_client(self,address):    
-        port=self.occupy_port()
-        print ('connessione client porta',port)
-        self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),0,port)
-        self.sock.settimeout(None)
-    
-    def disconnect_client(self,address):
-        print ('disconnetto client')
-        self.release_port(address)
     
     def server_main_loop(self):
         while True:
@@ -174,16 +169,12 @@ class Server:
             data,address,checksum,a,b,c,d = self.rcv(self.sock)
             if a==OPType.UPLOAD.value:
                 #server.upload(data.decode('utf8'),address)
-                threading.Thread(target=self.upload, args=(data.decode('utf8'),b,)).start()
+                threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
             elif a==OPType.GET_SERVER_FILES.value:
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
-                threading.Thread(target=self.download, args=(data.decode('utf8'),b,)).start()
+                threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
                 #self.download(data.decode('utf8'),address)               
-            elif a==OPType.CLOSE_CONNECTION.value:  
-                self.disconnect_client(b)
-            elif a==OPType.BEGIN_CONNECTION.value:  
-                self.connect_client(address)
     
 if __name__ == '__main__':
      server=Server('10.0.0.20',10000)
