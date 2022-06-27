@@ -81,11 +81,7 @@ class Server:
                 while True:
                     try:
                         chunk= file.read(4096*2)
-                        if random.randint(0, 30)==count:
-                            time.sleep(10)
-                            print('perso pacchetto',count)
-                        else:
-                            self.send(sock,address,chunk,0,count)
+                        self.send(sock,address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(sock)
                         while a is OPType.NACK.value:
                             print('qualche errore è successo pacchetto',count)
