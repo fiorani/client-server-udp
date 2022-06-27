@@ -14,6 +14,7 @@ class Client:
     def __init__(self,server_address,port):
        self.port=port
        self.server_name=server_address
+       self.client_address=(server_address,0)
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
        self.buffer=4096*4
@@ -38,7 +39,7 @@ class Client:
     
     def get_self_files(self):
         listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
-        print('file ' ,listToStr)
+        print('file nel client' ,listToStr)
         return listToStr
     
     def get_files_from_server(self):
@@ -49,6 +50,7 @@ class Client:
       if d != checksum:
           return ""
       elif data:
+          print('file nel server' ,data.decode('utf8'))
           return data.decode('utf8')
       
     def upload(self,filename):
@@ -56,9 +58,7 @@ class Client:
             self.sock.settimeout(self.timeoutLimit)
             print('invio nome al server ',filename)
             tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
-            self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,0)
-            data,address,checksum,a,b,c,d = self.rcv(self.sock)
-            server_address=(self.server_name,b)
+            self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,self.client_address[1])
             count=0
             file = open(os.path.join(self.path, filename), 'rb') 
             while True:
@@ -68,18 +68,18 @@ class Client:
                         time.sleep(10)
                         print('perso pacchetto',count)
                     else:
-                        self.send(self.sock,server_address,chunk,0,count)
+                        self.send(self.sock,self.client_address,chunk,0,count)
                     data,address,checksum,a,b,c,d = self.rcv(self.sock)
                     while a is OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
-                        self.send(self.sock,server_address,chunk,0,count)
+                        self.send(self.sock,self.client_address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(self.sock)
             
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                     while True:
                         try:
-                            self.send(self.sock,server_address,chunk,0,count)
+                            self.send(self.sock,self.client_address,chunk,0,count)
                             data,address,checksum,a,b,c,d = self.rcv(self.sock)
                             if a is OPType.ACK.value:
                                 break
@@ -94,16 +94,14 @@ class Client:
             
         else:
             print('non presente  ' ,filename)
-        self.send(self.sock,server_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
+        self.send(self.sock,self.client_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         self.sock.settimeout(None)
     
     def download(self,filename):
         self.sock.settimeout(self.timeoutLimit)
         print('invia nome al server ',filename)
-        self.send(self.sock,self.server_address,filename.encode(),OPType.UPLOAD.value,0)
-        data,address,checksum,a,b,c,d = self.rcv(self.sock)
-        server_address=(self.server_name,b)
-        print(server_address)
+        self.send(self.sock,self.server_address,filename.encode(),OPType.UPLOAD.value,self.client_address[1])
+        self.send(self.sock,self.client_address,'invio il nuovo address'.encode(),0,0)
         count = 0
         file = open(os.path.join(self.path,filename), 'wb')
         while True:
@@ -111,7 +109,7 @@ class Client:
                 data,address,checksum,a,b,c,d = self.rcv(self.sock)
                 while d != checksum or count != b:
                     print('qualche errore pacchetto ',count,'ricevuto pacchetto ',b)
-                    self.send(self.sock,server_address,'NACK'.encode(),OPType.NACK.value,count)
+                    self.send(self.sock,self.client_address,'NACK'.encode(),OPType.NACK.value,count)
                     data,address,checksum,a,b,c,d = self.rcv(self.sock)
                 if a is OPType.CLOSE_CONNECTION.value :
                     print('arrivati ', count, ' su ', b)
@@ -121,27 +119,34 @@ class Client:
                 print('timeout pacchetto ',count)
                 while True:
                     try:
-                        self.send(self.sock,server_address,'NACK'.encode(),OPType.NACK.value,count)
+                        self.send(self.sock,self.client_address,'NACK'.encode(),OPType.NACK.value,count)
                         data,address,checksum,a,b,c,d = self.rcv(self.sock)
                         if count==b:
                             break
                     except sk.timeout:
                         print('timeout pacchetto ',count)
             print('ricevuto pacchetto ',count)
-            self.send(self.sock,server_address,'ACK'.encode(),OPType.ACK.value,count)
+            self.send(self.sock,self.client_address,'ACK'.encode(),OPType.ACK.value,count)
             file.write(data)
             count += 1
                 
         file.close()
         self.sock.settimeout(None)
-        
       
     def start_client(self):
         print('avvio client')
         self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+        self.sock.settimeout(self.timeoutLimit)
+        self.send(self.sock,self.server_address,'inizio connessione'.encode(),OPType.BEGIN_CONNECTION.value,0)
+        data,address,checksum,a,b,c,d = self.rcv(self.sock)
+        self.client_address=(self.server_name,b)
+        self.sock.settimeout(None)
         
     def close_client(self):
         print('chiusura client')
+        self.sock.settimeout(self.timeoutLimit)
+        self.send(self.sock,self.server_address,'chiudo connessione'.encode(),OPType.CLOSE_CONNECTION.value,self.client_address[1])
+        self.sock.settimeout(None)
         self.sock.close()
         
         
