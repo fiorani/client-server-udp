@@ -199,11 +199,11 @@ class Server:
             a,b,c,d = struct.unpack('!IIII', udp_header)
             if a==OPType.UPLOAD.value:
                 #server.upload(data.decode('utf8'),address)
-                t = threading.Thread(target=self.upload, args=(data.decode('utf8'),address,))
-                t.start()
+                threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
             elif a==OPType.GET_SERVER_FILES.value:
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
+                #threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
                 self.download(data.decode('utf8'),address)               
             elif a==OPType.CLOSE_CONNECTION.value:  
                 self.close_server()
