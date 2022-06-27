@@ -80,11 +80,12 @@ class Server:
                 while True:
                     try:
                         chunk= file.read(4096*2)
-                        if random.randint(0, 30)==count:
-                            time.sleep(10)
-                            print('perso pacchetto',count)
-                        else:
-                            self.send(sock,address,chunk,0,count)
+                        #if random.randint(0, 30)==count:
+                        #    time.sleep(10)
+                        #    print('perso pacchetto',count)
+                        #else:
+                        #    self.send(sock,address,chunk,0,count)
+                        self.send(sock,address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(sock)
                         while a is OPType.NACK.value:
                             print('qualche errore è successo pacchetto',count)
@@ -155,9 +156,9 @@ class Server:
         print ('spengo server')
         self.sock.close()
         
-    def connect_client(self,address):
-        print ('connessione client')
+    def connect_client(self,address):    
         port=self.occupy_port()
+        print ('connessione client porta',port)
         self.sock.settimeout(self.timeoutLimit)
         self.send(self.sock,address,'invio porta'.encode(),0,port)
         self.sock.settimeout(None)

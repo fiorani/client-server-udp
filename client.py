@@ -64,11 +64,12 @@ class Client:
                 while True:
                     try:
                         chunk= file.read(4096*2)
-                        if random.randint(0, 30)==count:
-                            time.sleep(10)
-                            print('perso pacchetto',count)
-                        else:
-                            self.send(self.sock,self.client_address,chunk,0,count)
+                        #if random.randint(0, 30)==count:
+                        #    time.sleep(10)
+                        #    print('perso pacchetto',count)
+                        #else:
+                        #    self.send(self.sock,self.client_address,chunk,0,count)
+                        self.send(self.sock,self.client_address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(self.sock)
                         while a is OPType.NACK.value:
                             print('qualche errore è successo pacchetto',count)
@@ -130,11 +131,11 @@ class Client:
         self.sock.settimeout(None)
       
     def start_client(self):
-        print('avvio client')
         self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         self.sock.settimeout(self.timeoutLimit)
         self.send(self.sock,self.server_address,'inizio connessione'.encode(),OPType.BEGIN_CONNECTION.value,0)
         data,address,checksum,a,b,c,d = self.rcv(self.sock)
+        print('avvio client porta ',b)
         self.client_address=(self.server_name,b)
         self.sock.settimeout(None)
         
