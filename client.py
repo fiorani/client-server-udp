@@ -92,7 +92,7 @@ class Client:
             
         else:
             print('non presente  ' ,filename)
-        self.send(self.sock,self.server_address,''.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
+        self.send(self.sock,self.server_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         self.sock.settimeout(None)
     
     def download(self,filename):
