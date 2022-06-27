@@ -66,7 +66,7 @@ class Server:
         self.send(self.sock,address,listToStr.encode(),OPType.GET_SERVER_FILES.value,0)
         self.sock.settimeout(None)
         
-    def upload(self,filename,port):
+    def upload(self,filename,port,file):
         if filename in os.listdir(self.path):
             print ('upload client porta',port)
             sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -77,36 +77,36 @@ class Server:
             count=0
             data,address,checksum,a,b,c,d = self.rcv(sock)
             print('invio al client  ' ,filename)
-            with open(os.path.join(self.path, filename), 'rb') as file:
-                while True:
-                    try:
-                        chunk= file.read(4096*2)
-                        #if random.randint(0, 30)==count:
-                        #    time.sleep(10)
-                        #    print('perso pacchetto',count)
-                        #else:
-                        #    self.send(sock,address,chunk,0,count)
+            
+            while True:
+                try:
+                    chunk= file.read(4096*2)
+                    #if random.randint(0, 30)==count:
+                    #    time.sleep(10)
+                    #    print('perso pacchetto',count)
+                    #else:
+                    #    self.send(sock,address,chunk,0,count)
+                    self.send(sock,address,chunk,0,count)
+                    data,address,checksum,a,b,c,d = self.rcv(sock)
+                    while a is OPType.NACK.value:
+                        print('qualche errore è successo pacchetto',count)
                         self.send(sock,address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(sock)
-                        while a is OPType.NACK.value:
-                            print('qualche errore è successo pacchetto',count)
+                except sk.timeout:
+                    print('timeout pacchetto ',count)
+                    while True:
+                        try:
                             self.send(sock,address,chunk,0,count)
                             data,address,checksum,a,b,c,d = self.rcv(sock)
-                    except sk.timeout:
-                        print('timeout pacchetto ',count)
-                        while True:
-                            try:
-                                self.send(sock,address,chunk,0,count)
-                                data,address,checksum,a,b,c,d = self.rcv(sock)
-                                if a is OPType.ACK.value:
-                                    break
-                            except sk.timeout:
-                                print('timeout pacchetto ',count)
-                    print('inviato pacchetto ',count)
-                    count+=1
-                    if count==tot_packs:
-                        print('inviati ',count,' su ',tot_packs)
-                        break  
+                            if a is OPType.ACK.value:
+                                break
+                        except sk.timeout:
+                            print('timeout pacchetto ',count)
+                print('inviato pacchetto ',count)
+                count+=1
+                if count==tot_packs:
+                    print('inviati ',count,' su ',tot_packs)
+                    break  
         else:
             print('non presente  ' ,filename)
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
@@ -176,7 +176,8 @@ class Server:
             data,address,checksum,a,b,c,d = self.rcv(self.sock)
             if a==OPType.UPLOAD.value:
                 #server.upload(data.decode('utf8'),address)
-                threading.Thread(target=self.upload, args=(data.decode('utf8'),b,)).start()
+                with open(os.path.join(self.path, data.decode('utf8')), 'rb') as file:
+                threading.Thread(target=self.upload, args=(data.decode('utf8'),b,fiel,)).start()
             elif a==OPType.GET_SERVER_FILES.value:
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
