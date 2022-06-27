@@ -145,8 +145,8 @@ class Server:
                 self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
                 file.write(data)
                 count += 1
-            self.release_port(port)
-            sock.settimeout(None)
+        self.release_port(port)
+        sock.settimeout(None)
       
     def start_server(self):
         print ('start socket')
