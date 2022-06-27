@@ -134,6 +134,7 @@ class Client:
         
     def close_client(self):
         print('chiusura client')
+        self.sock.settimeout(None)
         self.sock.close()
         
         

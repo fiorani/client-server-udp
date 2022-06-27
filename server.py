@@ -102,7 +102,7 @@ class Server:
                     if count==tot_packs:
                         print('inviati ',count,' su ',tot_packs)
                         break  
-                self.release_port(port)
+            self.release_port(port)
         else:
             print('non presente  ' ,filename)
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
@@ -156,6 +156,7 @@ class Server:
     
     def close_server(self):
         print ('closing socket')
+        self.sock.settimeout(None)
         self.sock.close()
     
     def server_main_loop(self):
