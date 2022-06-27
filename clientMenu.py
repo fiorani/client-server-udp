@@ -101,7 +101,7 @@ class Ui:
                client.start_client()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
                client.close_client()
-               self.root.destroy()
+               #self.root.destroy()
             self.clear_boxes_selections()
         else:
             self.error_dialog_open()
