@@ -176,8 +176,8 @@ class Server:
             elif a==OPType.GET_SERVER_FILES.value:
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
-                #threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
-                self.download(data.decode('utf8'),address)               
+                threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
+                #self.download(data.decode('utf8'),address)               
             elif a==OPType.CLOSE_CONNECTION.value:  
                 self.close_server()
                 break
