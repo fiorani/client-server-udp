@@ -12,8 +12,6 @@ from operationType import OperationType as OPType
 class Client:
 
     def __init__(self,server_address,port):
-       self.port=port
-       self.server_name=server_address
        self.client_address=(server_address,0)
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
@@ -138,7 +136,7 @@ class Client:
         self.send(self.sock,self.server_address,'inizio connessione'.encode(),OPType.BEGIN_CONNECTION.value,0)
         data,address,checksum,a,b,c,d = self.rcv(self.sock)
         print('avvio client porta ',b)
-        self.client_address=(self.server_name,b)
+        self.client_address=(self.server_address[0],b)
         self.sock.settimeout(None)
         
     def close_client(self):
