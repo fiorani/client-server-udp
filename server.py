@@ -177,7 +177,7 @@ class Server:
             if a==OPType.UPLOAD.value:
                 #server.upload(data.decode('utf8'),address)
                 with open(os.path.join(self.path, data.decode('utf8')), 'rb') as file:
-                threading.Thread(target=self.upload, args=(data.decode('utf8'),b,fiel,)).start()
+                    threading.Thread(target=self.upload, args=(data.decode('utf8'),b,fiel,)).start()
             elif a==OPType.GET_SERVER_FILES.value:
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
