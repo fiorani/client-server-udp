@@ -57,6 +57,8 @@ class Client:
             print('invio nome al server ',filename)
             tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
             self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,0)
+            data,address,checksum,a,b,c,d = self.rcv(self.sock)
+            server_address=(self.server_name,b)
             count=0
             file = open(os.path.join(self.path, filename), 'rb') 
             while True:
@@ -66,18 +68,18 @@ class Client:
                         time.sleep(10)
                         print('perso pacchetto',count)
                     else:
-                        self.send(self.sock,self.server_address,chunk,0,count)
+                        self.send(self.sock,server_address,chunk,0,count)
                     data,address,checksum,a,b,c,d = self.rcv(self.sock)
                     while a is OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
-                        self.send(self.sock,self.server_address,chunk,0,count)
+                        self.send(self.sock,server_address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(self.sock)
             
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                     while True:
                         try:
-                            self.send(self.sock,self.server_address,chunk,0,count)
+                            self.send(self.sock,server_address,chunk,0,count)
                             data,address,checksum,a,b,c,d = self.rcv(self.sock)
                             if a is OPType.ACK.value:
                                 break
@@ -92,7 +94,7 @@ class Client:
             
         else:
             print('non presente  ' ,filename)
-        self.send(self.sock,self.server_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
+        self.send(self.sock,server_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         self.sock.settimeout(None)
     
     def download(self,filename):
