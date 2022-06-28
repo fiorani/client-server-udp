@@ -59,9 +59,8 @@ class Server:
         
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
-        listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
-        print('invio al client  ' ,listToStr)
-        self.send(self.sock,address,listToStr.encode(),OPType.GET_SERVER_FILES.value,0)
+        print('invio al client  ' ,self.get_self_files())
+        self.send(self.sock,address,self.get_self_files().encode(),OPType.GET_SERVER_FILES.value,0)
         self.sock.settimeout(None)
         
     def upload(self,filename,address):
