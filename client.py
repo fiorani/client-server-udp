@@ -124,6 +124,6 @@ class Client:
         
         
 if __name__ == '__main__':
-    client=Client('10.0.0.20',10000)
+    client=Client('10.0.0.2',10000)
     threading.Thread(target=Ui,args=(client,)).start()
     

@@ -99,9 +99,10 @@ class Server:
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                 
-        self.release_port(port)
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         sock.settimeout(None)
+        sock.close()
+        self.release_port(port)
     
     def download(self,filename,address):
         port=self.occupy_port()
@@ -132,9 +133,10 @@ class Server:
                     count += 1 
                 except sk.timeout:
                     print('timeout pacchetto ',count)
-                
-        self.release_port(port)
+                 
         sock.settimeout(None)
+        sock.close()
+        self.release_port(port)
       
     def start_server(self):
         print ('start socket')
