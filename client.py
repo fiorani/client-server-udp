@@ -17,8 +17,7 @@ class Client:
        self.buffer=4096*4
        self.sleep=0.001
        self.directoryName='file_client'
-       if not os.path.exists(os.path.join(os.getcwd(), self.directoryName)):
-          os.mkdir(os.path.join(os.getcwd(), self.directoryName)) 
+       ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
     def send(self,sock,address,data,op,count):

@@ -19,8 +19,7 @@ class Server:
        self.sleep=0.001
        self.lock = threading.Lock()
        self.directoryName='file_server'
-       if not os.path.exists(os.path.join(os.getcwd(), self.directoryName)):
-          os.mkdir(os.path.join(os.getcwd(), self.directoryName)) 
+       ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
     def send(self,sock,address,data,op,count):
