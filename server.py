@@ -158,12 +158,13 @@ class Server:
                 #server.upload(data.decode('utf8'),address)
                 threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
             elif a==OPType.GET_SERVER_FILES.value:
+                print(address)
                 self.get_files(address)
             elif a==OPType.DOWNLOAD.value:
                 threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
                 #self.download(data.decode('utf8'),address)               
     
 if __name__ == '__main__':
-     server=Server('10.0.0.20',10000)
+     server=Server('10.0.0.2',10000)
      threading.Thread(target=Ui,args=(server,)).start()
          
