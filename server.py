@@ -65,46 +65,41 @@ class Server:
         self.sock.settimeout(None)
         
     def upload(self,filename,address):
-        if filename in os.listdir(self.path):
-            port=self.occupy_port()
-            self.sock.settimeout(self.timeoutLimit)
-            self.send(self.sock,address,'invio porta'.encode(),0,port)
-            self.sock.settimeout(None)
-            server_address=(self.server_address[0],port)
-            sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
-            sock.bind(server_address)
-            sock.settimeout(self.timeoutLimit)        
-            tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
-            count=0
-            print('invio al client  ' ,filename)
-            with open(os.path.join(self.path, filename), 'rb') as file:
-                while True:
-                    try:
-                        chunk= file.read(4096*2)
+        port=self.occupy_port()
+        self.sock.settimeout(self.timeoutLimit)
+        self.send(self.sock,address,'invio porta'.encode(),0,port)
+        self.sock.settimeout(None)
+        server_address=(self.server_address[0],port)
+        sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
+        sock.bind(server_address)
+        sock.settimeout(self.timeoutLimit)        
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
+        print('invio al client  ' ,filename)
+        count=0
+        with open(os.path.join(self.path, filename), 'rb') as file:
+            chunk= file.read(4096*2)
+            while True:
+                try:
+                    #if random.randint(0, 30)==count:
+                    #    time.sleep(10)
+                    #    print('perso pacchetto',count)
+                    #else:
+                    self.send(sock,address,chunk,0,count)
+                    data,address,checksum,a,b,c,d = self.rcv(sock)
+                    while a is OPType.NACK.value:
+                        print('qualche errore è successo pacchetto',count)
                         self.send(sock,address,chunk,0,count)
                         data,address,checksum,a,b,c,d = self.rcv(sock)
-                        while a is OPType.NACK.value:
-                            print('qualche errore è successo pacchetto',count)
-                            self.send(sock,address,chunk,0,count)
-                            data,address,checksum,a,b,c,d = self.rcv(sock)
-                    except sk.timeout:
-                        print('timeout pacchetto ',count)
-                        while True:
-                            try:
-                                self.send(sock,address,chunk,0,count)
-                                data,address,checksum,a,b,c,d = self.rcv(sock)
-                                if a is OPType.ACK.value:
-                                    break
-                            except sk.timeout:
-                                print('timeout pacchetto ',count)
+                    chunk= file.read(4096*2)
                     print('inviato pacchetto ',count)
                     count+=1
                     if count==tot_packs:
                         print('inviati ',count,' su ',tot_packs)
                         break  
-            self.release_port(port)
-        else:
-            print('non presente  ' ,filename)
+                except sk.timeout:
+                    print('timeout pacchetto ',count)
+                
+        self.release_port(port)
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         sock.settimeout(None)
     
@@ -131,20 +126,13 @@ class Server:
                         print('arrivati ', count, ' su ', b)
                         sock.settimeout(None)
                         break
+                    print('ricevuto pacchetto ',count)
+                    self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
+                    file.write(data)
+                    count += 1 
                 except sk.timeout:
                     print('timeout pacchetto ',count)
-                    while True:
-                        try:
-                            self.send(sock,address,'nack'.encode(),OPType.NACK.value,count)
-                            data,address,checksum,a,b,c,d = self.rcv(sock)
-                            if count==b:
-                                break
-                        except sk.timeout:
-                            print('timeout pacchetto ',count) 
-                print('ricevuto pacchetto ',count)
-                self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
-                file.write(data)
-                count += 1
+                
         self.release_port(port)
         sock.settimeout(None)
       
