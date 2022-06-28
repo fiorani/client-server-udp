@@ -28,8 +28,7 @@ class Ui:
         
         self.server=server
         self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes(self.server))
-        #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(server))
-        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.Esegui_command(self.server))
+        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.exec_command(self.server))
         
         self.root.mainloop()
         
@@ -81,12 +80,11 @@ class Ui:
         errDialog.resizable(width=False, height=False)
         tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
         tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
-    def run_threaded_command(self,server):
-        threading.Thread(target=self.Esegui_command, args = (server,)).start()
+    
     def refresh_boxes(self, server):
         self.box_setArguments(self.BoxServerFiles, list(server.get_self_files().split("\n")))
     
-    def Esegui_command(self,server):
+    def exec_command(self,server):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
                 server.start_server()

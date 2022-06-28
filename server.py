@@ -65,7 +65,7 @@ class Server:
     def upload(self,filename,address):
         port=self.occupy_port()
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),0,port)
+        self.send(self.sock,address,'invio porta'.encode(),OPType.BEGIN_CONNECTION.value,port)
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -105,7 +105,7 @@ class Server:
     def download(self,filename,address):
         port=self.occupy_port()
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),0,port)
+        self.send(self.sock,address,'invio porta'.encode(),OPType.BEGIN_CONNECTION.value,port)
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)

@@ -67,7 +67,7 @@ class Ui:
         return Btn
     
     def run_threaded_command(self, client):
-        threading.Thread(target=self.Esegui_command, args = (client, )).start()
+        threading.Thread(target=self.exec_command, args = (client, )).start()
            
     def box_setArguments(self, box, elementsList):
         box.delete(0, tk.END)
@@ -91,7 +91,7 @@ class Ui:
         self.box_setArguments(self.BoxServerFiles, list(client.get_files_from_server().split("\n")))
         self.box_setArguments(self.BoxClientFiles, list(client.get_self_files().split("\n")))
     
-    def Esegui_command(self, client):
+    def exec_command(self, client):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
                 client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))
