@@ -81,10 +81,12 @@ class Client:
                             print('inviato ',count,' su ',tot_packs)
                             break
                 except sk.timeout:
+                    print('timeout pacchetto ',count)
                     tries+=1
                     if(tries==5):
+                        print('upload fallito ')
                         break
-                    print('timeout pacchetto ',count)
+                    
             
         self.send(self.sock,server_address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
         self.sock.settimeout(None)
@@ -118,11 +120,14 @@ class Client:
                         tries=0
                         self.perc=int(count*100/tot_packs)
                 except sk.timeout:
+                    print('timeout pacchetto ',count)
                     tries+=1
                     if(tries==5):
-                        os.remove(filename)
+                        print('download fallito ')
+                        file.close()
+                        os.remove(os.path.join(self.path, filename))
                         break
-                    print('timeout pacchetto ',count)
+                    
                 
         self.sock.settimeout(None)
     

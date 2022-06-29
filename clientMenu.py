@@ -20,7 +20,7 @@ class Ui(tk.Tk):
         
         self.operations = ("Download file from the server", "Upload file onto the server","start client", "Close connection with the server")
         
-        self.LabelFileServer=self.setup_label(0, 10, 150, 30, "Seleziona l'operazione")
+        self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti sul server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
         self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
@@ -35,7 +35,7 @@ class Ui(tk.Tk):
         self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
         #threading.Thread(target=self.update, args = (client, )).start()
         
-        self.Labelstatus=self.setup_label(350, 350, 70, 25, "Seleziona l'operazione")  
+        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'stato 0% completato')  
         self.Labelstatus.after(100, self.update_label_status)
         self.mainloop()
         
