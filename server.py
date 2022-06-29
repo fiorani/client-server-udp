@@ -8,7 +8,7 @@ import threading
 import utilities as ut
 from serverMenu import Ui
 from operationType import OperationType as OPType
-
+from segmentFactory import SegmentFactory
 class Server:
 
     def __init__(self,server_address,port):
@@ -22,9 +22,8 @@ class Server:
        ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
-    def send(self,sock,address,data,op,count,port):
-       header = struct.pack('!IIII', op, count, port, ut.checksum_calculator(data))
-       self.sock.sendto(header + data, address)  
+    def send(self,sock,address, segment):
+       self.sock.sendto(segment, address)  
        time.sleep(self.sleep)
        
     def rcv(self,sock):
@@ -59,14 +58,14 @@ class Server:
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
         print('invio al client  ' ,self.get_self_files())
-        self.send(self.sock,address,self.get_self_files().encode(),OPType.GET_SERVER_FILES.value,0,0)
+        self.send(self.sock,address,SegmentFactory.getListOfFilesSegment(self.get_self_files()))
         self.sock.settimeout(None)
         
     def upload(self,filename,address):
         port=self.occupy_port()
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),0,tot_packs,port)
+        self.send(self.sock,address, SegmentFactory.getBeginConnectionSegment(port, tot_packs))
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -83,7 +82,7 @@ class Server:
                     #    time.sleep(10)
                     #    print('perso pacchetto',count)
                     #else:
-                    self.send(sock,address,chunk,0,count,0)
+                    self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op==OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
@@ -103,7 +102,7 @@ class Server:
                         break
                     
                 
-        self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs,0)
+        self.send(sock,address,SegmentFactory.getCloseConnectionSegment())
         sock.settimeout(None)
         sock.close()
         self.release_port(port)
@@ -111,7 +110,7 @@ class Server:
     def download(self,filename,address):
         port=self.occupy_port()
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),0,0,port)
+        self.send(self.sock,address,SegmentFactory.getBeginConnectionSegment(port, 0))
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -126,14 +125,14 @@ class Server:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if checksum_correct != checksum or count != c:
                         print('qualche errore pacchetto ',count,'ricevuto pacchetto ',c)
-                        self.send(sock,address,'nack'.encode(),OPType.NACK.value,count,0)
+                        self.send(sock,address, SegmentFactory.getNACKSegment(count))
                     else:
                         if op is OPType.CLOSE_CONNECTION.value :
                             print('arrivati ', count, ' su ', c)
                             sock.settimeout(None)
                             break
                         print('ricevuto pacchetto ',count)
-                        self.send(sock,address,'ack'.encode(),OPType.ACK.value,count,0)
+                        self.send(sock,address,SegmentFactory.getACKSegment(count))
                         file.write(data)
                         count += 1 
                         tries=0
