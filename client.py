@@ -53,7 +53,7 @@ class Client:
         self.sock.settimeout(self.timeoutLimit)
         print('invio nome al server ',filename)
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
-        self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,0)
+        self.send(self.sock,self.server_address,filename.encode(),OPType.DOWNLOAD.value,tot_packs)
         data,address,checksum,a,b,c,d = self.rcv(self.sock)
         server_address=(self.server_address[0],b)
         count=0
