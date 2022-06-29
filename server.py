@@ -30,7 +30,7 @@ class Server:
         rcv, address = sock.recvfrom(self.buffer)
         received_udp_header = rcv[:16]
         data = rcv[16:]
-        op,count,port,checksum_correct = struct.unpack('!IIII', received_udp_header)
+        op,port,count,checksum_correct = struct.unpack('!IIII', received_udp_header)
         checksum = ut.checksum_calculator(data)
         return data,address,checksum,op,count,port,checksum_correct
    
