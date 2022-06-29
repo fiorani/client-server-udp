@@ -12,6 +12,7 @@ class Ui:
         #setting window size
         self.width=883
         self.height=566
+        self.server=server
         self.screenwidth = self.root.winfo_screenwidth()
         self.screenheight = self.root.winfo_screenheight()
         self.alignstr = '%dx%d+%d+%d' % (self.width, self.height, (self.screenwidth - self.width) / 2, (self.screenheight - self.height) / 2)
@@ -26,9 +27,8 @@ class Ui:
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.server=server
-        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes(self.server))
-        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.exec_command(self.server))
+        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
+        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.exec_command())
         
         self.root.mainloop()
         
@@ -49,7 +49,7 @@ class Ui:
         lbl["fg"] = "#333333"
         lbl["justify"] = "center"
         lbl["text"] = text
-        lbl.place(x=xPlacement,y=yPlacement,width=labelWidth,height=labelHeight)
+        lbl.place(x=xPlacement,y=yPlacement)
         return lbl
     
     def setup_btn(self, xPlacement, yPlacement, btnWidth, btnHeight, text, command):
@@ -60,7 +60,7 @@ class Ui:
         Btn["fg"] = "#000000"
         Btn["justify"] = "center"
         Btn["text"] = text
-        Btn.place(x=xPlacement,y=yPlacement,width=btnWidth,height=btnHeight)
+        Btn.place(x=xPlacement,y=yPlacement)
         Btn["command"] = command
         return Btn
            
@@ -81,15 +81,15 @@ class Ui:
         tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
         tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
     
-    def refresh_boxes(self, server):
-        self.box_setArguments(self.BoxServerFiles, list(server.get_self_files().split("\n")))
+    def refresh_boxes(self):
+        self.box_setArguments(self.BoxServerFiles, list(self.server.get_self_files().split("\n")))
     
-    def exec_command(self,server):
+    def exec_command(self):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
-                server.start_server()
+                self.server.start_server()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
-                server.close_server()
+                self.server.close_server()
             self.clear_boxes_selections()
         else:
             self.error_dialog_open()

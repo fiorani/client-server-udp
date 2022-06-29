@@ -64,16 +64,17 @@ class Server:
         
     def upload(self,filename,address):
         port=self.occupy_port()
+        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),OPType.BEGIN_CONNECTION.value,port)
+        self.send(self.sock,address,'invio porta'.encode(),tot_packs,port)
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         sock.bind(server_address)
         sock.settimeout(self.timeoutLimit)        
-        tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         print('invio al client  ' ,filename)
         count=0
+        tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
             chunk= file.read(4096*2)
             while True:
@@ -84,17 +85,21 @@ class Server:
                     #else:
                     self.send(sock,address,chunk,0,count)
                     data,address,checksum,a,b,c,d = self.rcv(sock)
-                    while a is OPType.NACK.value:
+                    if a==OPType.NACK.value:
+                        tries+=1
                         print('qualche errore è successo pacchetto',count)
-                        self.send(sock,address,chunk,0,count)
-                        data,address,checksum,a,b,c,d = self.rcv(sock)
-                    chunk= file.read(4096*2)
-                    print('inviato pacchetto ',count)
-                    count+=1
-                    if count==tot_packs:
-                        print('inviati ',count,' su ',tot_packs)
-                        break  
+                    else:
+                        chunk= file.read(4096*2)
+                        print('inviato pacchetto ',count)
+                        count+=1
+                        tries=0
+                        if count==tot_packs:
+                            print('inviati ',count,' su ',tot_packs)
+                            break  
                 except sk.timeout:
+                    tries+=1
+                    if(tries==5):
+                        break
                     print('timeout pacchetto ',count)
                 
         self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
@@ -113,23 +118,29 @@ class Server:
         sock.settimeout(self.timeoutLimit)
         print('scarico dal client',filename)
         count = 0
+        tries=0
         with open(os.path.join(self.path, filename), 'wb') as file:
             while True:
                 try:
                     data,address,checksum,a,b,c,d = self.rcv(sock)
-                    while d != checksum or count != b:
+                    if d != checksum or count != b:
                         print('qualche errore pacchetto ',count,'ricevuto pacchetto ',b)
                         self.send(sock,address,'nack'.encode(),OPType.NACK.value,count)
-                        data,address,checksum,a,b,c,d = self.rcv(sock)
-                    if a is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count, ' su ', b)
-                        sock.settimeout(None)
-                        break
-                    print('ricevuto pacchetto ',count)
-                    self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
-                    file.write(data)
-                    count += 1 
+                    else:
+                        if a is OPType.CLOSE_CONNECTION.value :
+                            print('arrivati ', count, ' su ', b)
+                            sock.settimeout(None)
+                            break
+                        print('ricevuto pacchetto ',count)
+                        self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
+                        file.write(data)
+                        count += 1 
+                        tries=0
                 except sk.timeout:
+                    tries+=1
+                    if(tries==5):
+                        os.remove(filename)
+                        break
                     print('timeout pacchetto ',count)
                  
         sock.settimeout(None)
@@ -163,6 +174,6 @@ class Server:
                 #self.download(data.decode('utf8'),address)               
     
 if __name__ == '__main__':
-     server=Server('10.0.0.2',10000)
+     server=Server('10.0.0.20',10000)
      threading.Thread(target=Ui,args=(server,)).start()
          
