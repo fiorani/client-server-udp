@@ -20,7 +20,7 @@ class Ui:
         self.root.resizable(width=False, height=False)
         self.operations = ("start server", "stop server")
         
-        self.LabelFileServer=self.setup_label(0, 10, 150, 30, "File presenti su server")
+        self.LabelFileServer=self.setup_label(10, 10, 150, 30, "File presenti su server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
         self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
