@@ -30,6 +30,8 @@ class Ui:
         self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
         self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.exec_command())
         
+        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'spento')  
+        
         self.root.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
@@ -87,8 +89,10 @@ class Ui:
     def exec_command(self):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
+                self.Labelstatus.configure(text='acceso')
                 self.server.start_server()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
+                self.Labelstatus.configure(text='spento')
                 self.server.close_server()
             self.clear_boxes_selections()
         else:

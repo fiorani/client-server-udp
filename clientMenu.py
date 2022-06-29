@@ -35,7 +35,8 @@ class Ui(tk.Tk):
         self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
         #threading.Thread(target=self.update, args = (client, )).start()
         
-        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'stato 0% completato')  
+        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'stato 0% completato')
+        self.Labelonoff=self.setup_label(350, 330, 70, 25, 'spento')  
         self.Labelstatus.after(100, self.update_label_status)
         self.mainloop()
         
@@ -104,8 +105,10 @@ class Ui(tk.Tk):
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
                 self.client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
+                self.Labelonoff.configure(text='acceso')
                 self.client.start_client()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
+                self.Labelonoff.configure(text='spento')
                 self.client.close_client()
                #self.root.destroy()
             self.clear_boxes_selections()
