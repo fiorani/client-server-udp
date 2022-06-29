@@ -20,8 +20,8 @@ class SegmentFactory:
     def getBeginConnectionSegment(port, tot_frames):
         return struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, port, tot_frames, 0)
     
-    def getUploadFrameSegment(seqNumber, frame):
-        return struct.pack("!IIII", OPType.UPLOAD.value, 0, seqNumber, ut.checksum_calculator(frame.encode())) + frame.encode()
+    def getUploadChunkSegment(seqNumber, chunk):
+        return struct.pack("!IIII", OPType.UPLOAD.value, 0, seqNumber, ut.checksum_calculator(chunk.encode())) + chunk.encode()
     
     def getDownloadRequestSegment(filename):
         return struct.pack("!IIII", OPType.DOWNLOAD.value, 0, 0, ut.checksum_calculator(filename.encode())) + filename.encode()
