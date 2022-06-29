@@ -22,8 +22,8 @@ class Server:
        ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
-    def send(self,sock,address,data,op,count):
-       header = struct.pack('!IIII', op, count, len(data), ut.checksum_calculator(data))
+    def send(self,sock,address,data,op,count,port):
+       header = struct.pack('!IIII', op, count, port, ut.checksum_calculator(data))
        self.sock.sendto(header + data, address)  
        time.sleep(self.sleep)
        
@@ -31,9 +31,9 @@ class Server:
         rcv, address = sock.recvfrom(self.buffer)
         received_udp_header = rcv[:16]
         data = rcv[16:]
-        a,b,c,d = struct.unpack('!IIII', received_udp_header)
+        op,count,port,checksum_correct = struct.unpack('!IIII', received_udp_header)
         checksum = ut.checksum_calculator(data)
-        return data,address,checksum,a,b,c,d
+        return data,address,checksum,op,count,port,checksum_correct
    
     def occupy_port(self):
         self.lock.acquire()
@@ -59,14 +59,14 @@ class Server:
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
         print('invio al client  ' ,self.get_self_files())
-        self.send(self.sock,address,self.get_self_files().encode(),OPType.GET_SERVER_FILES.value,0)
+        self.send(self.sock,address,self.get_self_files().encode(),OPType.GET_SERVER_FILES.value,0,0)
         self.sock.settimeout(None)
         
     def upload(self,filename,address):
         port=self.occupy_port()
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),tot_packs,port)
+        self.send(self.sock,address,'invio porta'.encode(),0,tot_packs,port)
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -83,9 +83,9 @@ class Server:
                     #    time.sleep(10)
                     #    print('perso pacchetto',count)
                     #else:
-                    self.send(sock,address,chunk,0,count)
-                    data,address,checksum,a,b,c,d = self.rcv(sock)
-                    if a==OPType.NACK.value:
+                    self.send(sock,address,chunk,0,count,0)
+                    data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
+                    if op==OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
                     else:
                         chunk= file.read(4096*2)
@@ -103,7 +103,7 @@ class Server:
                         break
                     
                 
-        self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs)
+        self.send(sock,address,'chiudo la connessione'.encode(),OPType.CLOSE_CONNECTION.value,tot_packs,0)
         sock.settimeout(None)
         sock.close()
         self.release_port(port)
@@ -111,7 +111,7 @@ class Server:
     def download(self,filename,address):
         port=self.occupy_port()
         self.sock.settimeout(self.timeoutLimit)
-        self.send(self.sock,address,'invio porta'.encode(),OPType.BEGIN_CONNECTION.value,port)
+        self.send(self.sock,address,'invio porta'.encode(),0,0,port)
         self.sock.settimeout(None)
         server_address=(self.server_address[0],port)
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -123,17 +123,17 @@ class Server:
         with open(os.path.join(self.path, filename), 'wb') as file:
             while True:
                 try:
-                    data,address,checksum,a,b,c,d = self.rcv(sock)
-                    if d != checksum or count != b:
-                        print('qualche errore pacchetto ',count,'ricevuto pacchetto ',b)
-                        self.send(sock,address,'nack'.encode(),OPType.NACK.value,count)
+                    data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
+                    if checksum_correct != checksum or count != c:
+                        print('qualche errore pacchetto ',count,'ricevuto pacchetto ',c)
+                        self.send(sock,address,'nack'.encode(),OPType.NACK.value,count,0)
                     else:
-                        if a is OPType.CLOSE_CONNECTION.value :
-                            print('arrivati ', count, ' su ', b)
+                        if op is OPType.CLOSE_CONNECTION.value :
+                            print('arrivati ', count, ' su ', c)
                             sock.settimeout(None)
                             break
                         print('ricevuto pacchetto ',count)
-                        self.send(sock,address,'ack'.encode(),OPType.ACK.value,count)
+                        self.send(sock,address,'ack'.encode(),OPType.ACK.value,count,0)
                         file.write(data)
                         count += 1 
                         tries=0
@@ -166,14 +166,14 @@ class Server:
         while True:
             self.sock.settimeout(None)
             print('aspetto')
-            data,address,checksum,a,b,c,d = self.rcv(self.sock)
-            if a==OPType.UPLOAD.value:
+            data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
+            if op==OPType.UPLOAD.value:
                 #server.upload(data.decode('utf8'),address)
                 threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
-            elif a==OPType.GET_SERVER_FILES.value:
+            elif op==OPType.GET_SERVER_FILES.value:
                 print(address)
                 self.get_files(address)
-            elif a==OPType.DOWNLOAD.value:
+            elif op==OPType.DOWNLOAD.value:
                 threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
                 #self.download(data.decode('utf8'),address)               
     
