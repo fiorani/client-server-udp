@@ -11,6 +11,12 @@ import utilities as ut
 
 class SegmentFactory:
     
+    def getListOfFilesSegment(files):
+        return struct.pack("!IIII", OPType.GET_SERVER_FILES, 0, 0, ut.checksum_calculator(files.encode())) + files.encode()
+    
+    def getFileRequestSegment():
+        return struct.pack("!IIII", OPType.GET_SERVER_FILES, 0, 0, 0)
+     
     def getBeginConnectionSegment(port):
         return struct.pack("!IIII", OPType.BEGIN_CONNECTION.value, port, 0, 0)
     
