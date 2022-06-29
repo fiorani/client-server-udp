@@ -86,7 +86,6 @@ class Server:
                     self.send(sock,address,chunk,0,count)
                     data,address,checksum,a,b,c,d = self.rcv(sock)
                     if a==OPType.NACK.value:
-                        tries+=1
                         print('qualche errore è successo pacchetto',count)
                     else:
                         chunk= file.read(4096*2)
