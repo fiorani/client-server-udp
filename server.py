@@ -1,4 +1,5 @@
 import socket as sk
+from socket import error as sock_err
 import time
 import struct
 import os
@@ -101,7 +102,6 @@ class Server:
                         print('upload fallito ')
                         break
                     
-                
         self.send(sock,address,SegmentFactory.getCloseConnectionSegment())
         sock.settimeout(None)
         sock.close()
@@ -162,21 +162,27 @@ class Server:
         self.sock.close()
     
     def server_main_loop(self):
-        while True:
-            self.sock.settimeout(None)
-            print('aspetto')
-            data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
-            if op==OPType.UPLOAD.value:
-                #server.upload(data.decode('utf8'),address)
-                threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
-            elif op==OPType.GET_SERVER_FILES.value:
-                print(address)
-                self.get_files(address)
-            elif op==OPType.DOWNLOAD.value:
-                threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
-                #self.download(data.decode('utf8'),address)               
+        try:
+            while True:    
+                self.sock.settimeout(None)
+                print('aspetto')
+                data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
+                if op==OPType.UPLOAD.value:
+                    #server.upload(data.decode('utf8'),address)
+                    threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
+                elif op==OPType.GET_SERVER_FILES.value:
+                    print(address)
+                    self.get_files(address)
+                elif op==OPType.DOWNLOAD.value:
+                    threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
+                    #self.download(data.decode('utf8'),address)
+        except sock_err:
+            #necessario per non avere eccezioni qualora si chiudesse il socket
+            print('closing server')
+                
+            
     
 if __name__ == '__main__':
-     server=Server('10.0.0.20',10000)
+     server=Server('localhost',10000)
      threading.Thread(target=Ui,args=(server,)).start()
          
