@@ -124,7 +124,7 @@ class Server:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count-1, ' su ', c)
+                        print('arrivati ', count-1, ' su ', tot_packs)
                         sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
