@@ -87,14 +87,14 @@ class Server:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op==OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
+                    elif count==tot_packs:
+                        print('inviati ',count,' su ',tot_packs)
+                        break  
                     else:
                         chunk= file.read(4096*2)
                         print('inviato pacchetto ',count)
                         count+=1
                         tries=0
-                        if count==tot_packs:
-                            print('inviati ',count,' su ',tot_packs)
-                            break  
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                     tries+=1
@@ -123,14 +123,15 @@ class Server:
             while True:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
-                    if checksum_correct != checksum or count != c:
+                    print(op)
+                    if op is OPType.CLOSE_CONNECTION.value :
+                        print('arrivati ', count, ' su ', c)
+                        sock.settimeout(None)
+                        break
+                    elif checksum_correct != checksum or count != c:
                         print('qualche errore pacchetto ',count,'ricevuto pacchetto ',c)
                         self.send(sock,address, SegmentFactory.getNACKSegment(count))
                     else:
-                        if op is OPType.CLOSE_CONNECTION.value :
-                            print('arrivati ', count, ' su ', c)
-                            sock.settimeout(None)
-                            break
                         print('ricevuto pacchetto ',count)
                         self.send(sock,address,SegmentFactory.getACKSegment(count))
                         file.write(data)
