@@ -20,17 +20,17 @@ class Ui(tk.Tk):
         self.resizable(width=False, height=False)
         self.operations = ("start server", "stop server")
         
-        self.LabelFileServer=self.setup_label(10, 10, 150, 30, "File presenti su server")
+        self.LabelFileServer=self.setup_label(10, 10, "File presenti su server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
-        self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
+        self.LabelOp=self.setup_label(300, 10, "Seleziona l'operazione")            
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
-        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.exec_command())
+        self.RefreshBtn=self.setup_btn(450, 390, "Aggiorna", lambda: self.refresh_boxes())
+        self.EseguiBtn=self.setup_btn(350, 390, "Esegui", lambda: self.exec_command())
         
-        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'spento')  
+        self.Labelstatus=self.setup_label(350, 350, 'spento')  
         
         self.mainloop()
         
@@ -44,7 +44,7 @@ class Ui(tk.Tk):
         Box.place(x=xPlacement, y=yPlacement, width=boxWidth, height=boxHeight)
         return Box
     
-    def setup_label(self, xPlacement, yPlacement, labelWidth, labelHeight, text):
+    def setup_label(self, xPlacement, yPlacement, text):
         lbl=tk.Label(self)
         ft = tkFont.Font(family='Times',size=10)
         lbl["font"] = ft
@@ -54,7 +54,7 @@ class Ui(tk.Tk):
         lbl.place(x=xPlacement,y=yPlacement)
         return lbl
     
-    def setup_btn(self, xPlacement, yPlacement, btnWidth, btnHeight, text, command):
+    def setup_btn(self, xPlacement, yPlacement, text, command):
         Btn=tk.Button(self)
         Btn["bg"] = "#f0f0f0"
         ft = tkFont.Font(family='Times',size=10)

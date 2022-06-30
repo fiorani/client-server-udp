@@ -20,23 +20,22 @@ class Ui(tk.Tk):
         
         self.operations = ("Download file from the server", "Upload file onto the server","start client", "Close connection with the server")
         
-        self.LabelFileServer=self.setup_label(10, 10, 150, 30, "File presenti sul server")
+        self.LabelFileServer=self.setup_label(10, 10, "File presenti sul server")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
-        self.LabelOp=self.setup_label(300, 10, 135, 30, "Seleziona l'operazione")            
+        self.LabelOp=self.setup_label(300, 10, "Seleziona l'operazione")            
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.LabelFileClient=self.setup_label(590, 10, 120, 30, "File presenti sul pc")
+        self.LabelFileClient=self.setup_label(590, 10, "File presenti sul pc")
         self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
         
         #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
-        self.EseguiBtn=self.setup_btn(350, 390, 70, 25, "Esegui", lambda: self.run_threaded_command())
-        self.RefreshBtn=self.setup_btn(450, 390, 70, 25, "Aggiorna", lambda: self.refresh_boxes())
+        self.EseguiBtn=self.setup_btn(350, 390,  "Esegui", lambda: self.run_threaded_command())
+        self.RefreshBtn=self.setup_btn(450, 390, "Aggiorna", lambda: self.refresh_boxes())
         #threading.Thread(target=self.update, args = (client, )).start()
         
-        self.Labelstatus=self.setup_label(350, 350, 70, 25, 'stato 0% completato')
-        self.Labelonoff=self.setup_label(350, 330, 70, 25, 'spento')  
+        self.Labelstatus=self.setup_label(10, 350, '')
         self.Labelstatus.after(100, self.update_label_status)
         self.mainloop()
         
@@ -51,7 +50,7 @@ class Ui(tk.Tk):
         Box.place(x=xPlacement, y=yPlacement, width=boxWidth, height=boxHeight)
         return Box
     
-    def setup_label(self, xPlacement, yPlacement, labelWidth, labelHeight, text):
+    def setup_label(self, xPlacement, yPlacement, text):
         lbl=tk.Label(self)
         ft = tkFont.Font(family='Times',size=10)
         lbl["font"] = ft
@@ -61,7 +60,7 @@ class Ui(tk.Tk):
         lbl.place(x=xPlacement,y=yPlacement)
         return lbl
     
-    def setup_btn(self, xPlacement, yPlacement, btnWidth, btnHeight, text, command):
+    def setup_btn(self, xPlacement, yPlacement, text, command):
         Btn=tk.Button(self)
         Btn["bg"] = "#f0f0f0"
         ft = tkFont.Font(family='Times',size=10)
@@ -105,18 +104,15 @@ class Ui(tk.Tk):
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
                 self.client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
-                self.Labelonoff.configure(text='acceso')
                 self.client.start_client()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
-                self.Labelonoff.configure(text='spento')
                 self.client.close_client()
-               #self.root.destroy()
             self.clear_boxes_selections()
         else:
             self.error_dialog_open()
 
     def update_label_status(self):
-        self.Labelstatus.configure(text='stato '+str(self.client.status())+'% completato')
+        self.Labelstatus.configure(text=self.client.status())
         self.Labelstatus.after(100, self.update_label_status)
         
 
