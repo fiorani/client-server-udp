@@ -17,7 +17,7 @@ class Client:
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.perc=0
-       self.sleep=0.001
+       self.sleep=0.01
        self.directoryName='file_client'
        ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
@@ -57,6 +57,7 @@ class Client:
         data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
         port=p
         server_address=(self.server_address[0],port)
+        print('indirizzo ',server_address)
         count=0
         tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
@@ -100,7 +101,7 @@ class Client:
         tot_packs=c
         port=p
         server_address=(self.server_address[0],port)
-        print(server_address)
+        print('indirizzo ',server_address)
         count = 0
         tries=0
         with open(os.path.join(self.path, filename), 'wb') as file:
@@ -108,7 +109,7 @@ class Client:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count, ' su ', tot_packs)
+                        print('arrivati ', count-1, ' su ', tot_packs)
                         self.sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:

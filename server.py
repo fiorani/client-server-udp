@@ -17,7 +17,7 @@ class Server:
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
        self.buffer=4096*4
-       self.sleep=0.001
+       self.sleep=0.01
        self.lock = threading.Lock()
        self.directoryName='file_server'
        ut.create_directory(self.directoryName)
@@ -107,7 +107,7 @@ class Server:
         sock.close()
         self.release_port(port)
     
-    def download(self,filename,address):
+    def download(self,filename,address,tot_packs):
         port=self.occupy_port()
         self.sock.settimeout(self.timeoutLimit)
         self.send(self.sock,address,SegmentFactory.getBeginConnectionSegment(port, 0))
@@ -123,9 +123,8 @@ class Server:
             while True:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
-                    print(op)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count, ' su ', c)
+                        print('arrivati ', count-1, ' su ', c)
                         sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
@@ -175,7 +174,7 @@ class Server:
                     print(address)
                     self.get_files(address)
                 elif op==OPType.DOWNLOAD.value:
-                    threading.Thread(target=self.download, args=(data.decode('utf8'),address,)).start()
+                    threading.Thread(target=self.download, args=(data.decode('utf8'),address,c,)).start()
                     #self.download(data.decode('utf8'),address)
         except sock_err:
             #necessario per non avere eccezioni qualora si chiudesse il socket
