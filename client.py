@@ -62,26 +62,31 @@ class Client:
         tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
             chunk= file.read(4096*2)
+            self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
+            data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
+            print('inviato pacchetto ',count)
+            self.perc=int(count*100/tot_packs)
+            count+=1
             while True:
                 try:
                     #if random.randint(0, 30)==count:
                     #    time.sleep(10)
                     #    print('perso pacchetto',count)
                     #else:
-                    self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
-                    data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                     if op==OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
                     elif count==tot_packs:
                         self.perc=100
                         print('inviato ',count,' su ',tot_packs)
                         break
-                    else:
+                    elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
+                        self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
+                        data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                         print('inviato pacchetto ',count)
+                        self.perc=int(count*100/tot_packs)
                         count+=1
                         tries=0
-                        self.perc=int(count*100/tot_packs)
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                     tries+=1
@@ -109,7 +114,7 @@ class Client:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count-1, ' su ', tot_packs)
+                        print('arrivati ', count, ' su ', tot_packs)
                         self.sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
@@ -119,8 +124,8 @@ class Client:
                         print('ricevuto pacchetto ',count)
                         self.send(self.sock,server_address,SegmentFactory.getACKSegment(count))
                         file.write(data)
-                        self.perc=int(count*100/tot_packs)
                         count += 1
+                        self.perc=int(count*100/tot_packs)
                         tries=0
                 except sk.timeout:
                     print('timeout pacchetto ',count)

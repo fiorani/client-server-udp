@@ -77,21 +77,25 @@ class Server:
         tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
             chunk= file.read(4096*2)
+            self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
+            data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
+            print('inviato pacchetto ',count)
+            count+=1
             while True:
                 try:
                     #if random.randint(0, 30)==count:
                     #    time.sleep(10)
                     #    print('perso pacchetto',count)
                     #else:
-                    self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
-                    data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op==OPType.NACK.value:
                         print('qualche errore è successo pacchetto',count)
                     elif count==tot_packs:
                         print('inviati ',count,' su ',tot_packs)
                         break  
-                    else:
+                    elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
+                        self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
+                        data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                         print('inviato pacchetto ',count)
                         count+=1
                         tries=0
@@ -124,7 +128,7 @@ class Server:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count-1, ' su ', tot_packs)
+                        print('arrivati ', count, ' su ', tot_packs)
                         sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
@@ -162,7 +166,7 @@ class Server:
         self.sock.close()
     
     def server_main_loop(self):
-        try:
+        
             while True:    
                 self.sock.settimeout(None)
                 print('aspetto')
@@ -176,9 +180,6 @@ class Server:
                 elif op==OPType.DOWNLOAD.value:
                     threading.Thread(target=self.download, args=(data.decode('utf8'),address,c,)).start()
                     #self.download(data.decode('utf8'),address)
-        except sock_err:
-            #necessario per non avere eccezioni qualora si chiudesse il socket
-            print('closing server')
                 
             
     
