@@ -94,11 +94,11 @@ class Server:
                         break  
                     elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
-                        self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
-                        data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                         print('inviato pacchetto ',count)
                         count+=1
                         tries=0
+                    self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
+                    data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                 except sk.timeout:
                     print('timeout pacchetto ',count)
                     tries+=1
