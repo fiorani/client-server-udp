@@ -3,21 +3,21 @@ import tkinter.font as tkFont
 import threading 
 
 
-class Ui:
+class Ui(tk.Tk):
     
     def __init__(self,server):
+        super().__init__()
         #setting title
-        self.root=tk.Tk()
-        self.root.title("server")
+        self.title("server")
         #setting window size
         self.width=883
         self.height=566
         self.server=server
-        self.screenwidth = self.root.winfo_screenwidth()
-        self.screenheight = self.root.winfo_screenheight()
+        self.screenwidth = self.winfo_screenwidth()
+        self.screenheight = self.winfo_screenheight()
         self.alignstr = '%dx%d+%d+%d' % (self.width, self.height, (self.screenwidth - self.width) / 2, (self.screenheight - self.height) / 2)
-        self.root.geometry(self.alignstr)
-        self.root.resizable(width=False, height=False)
+        self.geometry(self.alignstr)
+        self.resizable(width=False, height=False)
         self.operations = ("start server", "stop server")
         
         self.LabelFileServer=self.setup_label(10, 10, 150, 30, "File presenti su server")
@@ -32,10 +32,10 @@ class Ui:
         
         self.Labelstatus=self.setup_label(350, 350, 70, 25, 'spento')  
         
-        self.root.mainloop()
+        self.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
-        Box = tk.Listbox(self.root, exportselection = 0)
+        Box = tk.Listbox(self, exportselection = 0)
         Box["borderwidth"] = "1px"
         ft = tkFont.Font(family='Times',size=10)
         Box["font"] = ft
@@ -45,7 +45,7 @@ class Ui:
         return Box
     
     def setup_label(self, xPlacement, yPlacement, labelWidth, labelHeight, text):
-        lbl=tk.Label(self.root)
+        lbl=tk.Label(self)
         ft = tkFont.Font(family='Times',size=10)
         lbl["font"] = ft
         lbl["fg"] = "#333333"
@@ -55,7 +55,7 @@ class Ui:
         return lbl
     
     def setup_btn(self, xPlacement, yPlacement, btnWidth, btnHeight, text, command):
-        Btn=tk.Button(self.root)
+        Btn=tk.Button(self)
         Btn["bg"] = "#f0f0f0"
         ft = tkFont.Font(family='Times',size=10)
         Btn["font"] = ft
