@@ -208,6 +208,7 @@ class Server:
                     threading.Thread(target=self.get_files, args=(address,)).start()
                 elif op==OPType.DOWNLOAD.value:
                     threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
+                    
         except sock_err:
             self.close_server()
             self.state='error'    
