@@ -67,9 +67,9 @@ class Server:
     def upload(self,filename,address):
         try:
             port=self.occupy_port()
-            tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
+            packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
             self.sock.settimeout(self.timeoutLimit)
-            self.send(self.sock,address, SegmentFactory.getBeginConnectionSegment(port, tot_packs))
+            self.send(self.sock,address, SegmentFactory.getBeginConnectionSegment(port, packs))
             self.sock.settimeout(None)
             server_address=(self.server_address[0],port)
             sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
@@ -91,8 +91,8 @@ class Server:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op==OPType.NACK.value:
                         print('an error occurred on packet ',count)
-                    elif count==tot_packs:
-                        print('sent ',count,' out of ',tot_packs)
+                    elif count==packs:
+                        print('sent ',count,' out of ',packs)
                         break  
                     elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
@@ -117,7 +117,7 @@ class Server:
             sock.close()
             self.release_port(port)
     
-    def download(self,filename,address,tot_packs):
+    def download(self,filename,address,packs):
         try:
             port=self.occupy_port()
             self.sock.settimeout(self.timeoutLimit)
@@ -136,7 +136,7 @@ class Server:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op is OPType.CLOSE_CONNECTION.value :
                         count-=1
-                        print('arrived ', count, ' out of ', tot_packs)
+                        print('arrived ', count, ' out of ', packs)
                         sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
