@@ -1,11 +1,9 @@
 import socket as sk
-from socket import error as sock_err
 import time
 import struct
 import os
 import math
 import utilities as ut
-import random
 import threading
 from clientMenu import Ui
 from operationType import OperationType as OPType
@@ -20,7 +18,7 @@ class Client:
        self.perc='0'
        self.sleep=0.01
        self.directoryName='file_client'
-       self.state='spento'
+       self.state='off'
        ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
@@ -37,13 +35,11 @@ class Client:
         return data,address,checksum,op,count,port,checksum_correct
     
     def get_self_files(self):
-        listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
-        print('file ' ,listToStr)
-        return listToStr
+        return ut.get_files_as_string(self.path)
     
     def get_files_from_server(self):
       self.sock.settimeout(self.timeoutLimit)
-      self.send(self.sock,self.server_address,SegmentFactory.getFileRequestSegment())
+      self.send(self.sock,self.server_address,SegmentFactory.getServerFilesRequestSegment())
       data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
       self.sock.settimeout(None)
       if checksum_correct != checksum:
@@ -53,48 +49,44 @@ class Client:
       
     def upload(self,filename):
         self.sock.settimeout(self.timeoutLimit)
-        print('invio nome al server ',filename)
+        print('sending filename to the server: ',filename)
         tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
-        self.send(self.sock,self.server_address, SegmentFactory.getBeginUploadToServerSegment(filename, tot_packs))
+        self.send(self.sock,self.server_address, SegmentFactory.getUploadToServerRequestSegment(filename, tot_packs))
         data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
         port=p
         server_address=(self.server_address[0],port)
-        print('indirizzo ',server_address)
+        print('address ',server_address)
         count=0
         tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
             chunk= file.read(4096*2)
             self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
-            print('inviato pacchetto ',count)
+            print('sent packet ',count)
             count+=1
             while True:
                 try:
-                    #if random.randint(0, 30)==count:
-                    #    time.sleep(10)
-                    #    print('perso pacchetto',count)
-                    #else:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                     if op==OPType.NACK.value:
-                        self.state='errore'
-                        print('qualche errore è successo pacchetto',count)
+                        self.state='error'
+                        print('an error occurred on packet',count)
                         self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
                     elif count==tot_packs:
                         self.perc='100'
-                        print('inviato ',count,' su ',tot_packs)
+                        print('sent ',count,' out of ',tot_packs)
                         break
                     elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
                         self.send(self.sock,server_address,SegmentFactory.getUploadChunkSegment(count, chunk))
-                        print('inviato pacchetto ',count)
+                        print('sent packet ',count)
                         self.perc=str(int((count*100)/tot_packs))
                         count+=1
                         tries=0
                 except sk.timeout:
                     self.state='timeout'
-                    print('timeout pacchetto ',count)
+                    print('packet timeout',count)
                     tries+=1
                     if(tries==5):
-                        print('upload fallito ')
+                        print('failed upload ')
                         break
                     
             
@@ -103,13 +95,13 @@ class Client:
     
     def download(self,filename):
         self.sock.settimeout(self.timeoutLimit)
-        print('invia nome al server ',filename)
-        self.send(self.sock,self.server_address, SegmentFactory.getUploadRequestSegment(filename))
+        print('sending filename to the server ',filename)
+        self.send(self.sock,self.server_address, SegmentFactory.getDownloadToClientRequestSegment(filename))
         data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
         tot_packs=c
         port=p
         server_address=(self.server_address[0],port)
-        print('indirizzo ',server_address)
+        print('address ',server_address)
         count = 0
         tries=0
         with open(os.path.join(self.path, filename), 'wb') as file:
@@ -117,15 +109,15 @@ class Client:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count, ' su ', tot_packs)
+                        print('arrived ', count, ' out of ', tot_packs)
                         self.sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
-                        self.state='errore'
-                        print('qualche errore pacchetto ',count,'ricevuto pacchetto ',count)
+                        self.state='error'
+                        print('an error occurred on packet ',count,'received packet ',count)
                         self.send(self.sock,server_address,SegmentFactory.getNACKSegment(count))
                     else:
-                        print('ricevuto pacchetto ',count)
+                        print('received packet ',count)
                         self.send(self.sock,server_address,SegmentFactory.getACKSegment(count))
                         file.write(data)
                         count += 1
@@ -133,11 +125,11 @@ class Client:
                         tries=0
                 except sk.timeout:
                     self.state='timeout'
-                    print('timeout pacchetto ',count)
+                    print('timeout packet ',count)
                     self.send(self.sock,server_address,SegmentFactory.getNACKSegment(count))
                     tries+=1
                     if(tries==5):
-                        print('download fallito ')
+                        print('failed download ')
                         file.close()
                         os.remove(os.path.join(self.path, filename))
                         break
@@ -146,17 +138,17 @@ class Client:
         self.sock.settimeout(None)
     
     def status(self):
-        return 'stato operazione '+self.perc+'% completato stato client '+self.state
+        return 'procedure state '+self.perc+'% completed client state '+self.state
       
     def start_client(self):
-        print('avvio client')
-        self.state='acceso'
+        print('starting client')
+        self.state='on'
         self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         
         
     def close_client(self):
-        print('chiusura client')
-        self.state='spento'
+        print('closing client')
+        self.state='off'
         self.sock.settimeout(None)
         self.sock.close()
         
