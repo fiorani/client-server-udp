@@ -176,10 +176,11 @@ class Server:
     def status(self):
         return 'server state '+self.state
     
-    def start_server(self):
+    def start_server(self,server_address):
         try:
             print ('starting socket')
             self.state='starting server' 
+            self.server_address=(server_address,self.server_address[1])
             self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
             self.sock.bind(self.server_address)
             threading.Thread(target=self.server_main_loop).start()
@@ -212,6 +213,6 @@ class Server:
             self.state='error'    
     
 if __name__ == '__main__':
-     server=Server('localhost',10000)
+     server=Server('',10000)
      threading.Thread(target=Ui,args=(server,)).start()
          

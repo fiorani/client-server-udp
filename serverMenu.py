@@ -26,8 +26,12 @@ class Ui(tk.Tk):
         self.RefreshBtn=self.setup_btn(450, 390, "Update", lambda: self.refresh_boxes())
         self.EseguiBtn=self.setup_btn(350, 390, "Exec", lambda: self.exec_command())
         
-        self.Labelstatus=self.setup_label(10, 350, '')
+        self.Labelstatus=self.setup_label(340, 540, '')
         self.Labelstatus.after(100, self.update_label_status)
+        
+        self.Labelserveraddres=self.setup_label(10, 540, "server address")
+        self.serveraddress=self.setup_entry(120, 540, 200, 20,"server address")
+        self.serveraddress.insert(0, "localhost")
         
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.mainloop()
@@ -80,6 +84,17 @@ class Ui(tk.Tk):
         errDialog.resizable(width=False, height=False)
         tk.Label(errDialog, text = "Error, Choose a procedure first").pack()
         tk.Button(errDialog, text = "Close", command = errDialog.destroy).pack()
+        
+    def setup_entry(self, xPlacement, yPlacement, boxWidth, boxHeight,text):
+        Entry = tk.Entry(self)
+        Entry["borderwidth"] = "1px"
+        ft = tkFont.Font(family='Times',size=10)
+        Entry["font"] = ft
+        Entry["fg"] = "#333333"
+        Entry["justify"] = "center"
+        Entry["text"] = text
+        Entry.place(x=xPlacement, y=yPlacement, width=boxWidth, height=boxHeight)
+        return Entry
     
     def refresh_boxes(self):
         self.box_setArguments(self.BoxServerFiles, list(self.server.get_self_files().split("\n")))
@@ -88,7 +103,7 @@ class Ui(tk.Tk):
         self.server.state=''
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
-                self.server.start_server()
+                self.server.start_server(self.serveraddress.get())
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
                 self.server.close_server()
             self.clear_boxes_selections()

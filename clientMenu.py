@@ -31,8 +31,12 @@ class Ui(tk.Tk):
         self.EseguiBtn=self.setup_btn(350, 390,  "Exec", lambda: self.run_threaded_command())
         self.RefreshBtn=self.setup_btn(450, 390, "Update", lambda: self.refresh_boxes())
         
-        self.Labelstatus=self.setup_label(10, 350, '')
+        self.Labelstatus=self.setup_label(340, 540, '')
         self.Labelstatus.after(100, self.update_label_status)
+        
+        self.Labelserveraddress=self.setup_label(10, 540, "server address")
+        self.serveraddress=self.setup_entry(120, 540, 200, 20,"server address")
+        self.serveraddress.insert(0, "localhost")
         
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.mainloop()
@@ -70,6 +74,17 @@ class Ui(tk.Tk):
         Btn["command"] = command
         return Btn
     
+    def setup_entry(self, xPlacement, yPlacement, boxWidth, boxHeight,text):
+        Entry = tk.Entry(self)
+        Entry["borderwidth"] = "1px"
+        ft = tkFont.Font(family='Times',size=10)
+        Entry["font"] = ft
+        Entry["fg"] = "#333333"
+        Entry["justify"] = "center"
+        Entry["text"] = text
+        Entry.place(x=xPlacement, y=yPlacement, width=boxWidth, height=boxHeight)
+        return Entry
+    
     def run_threaded_command(self):
         threading.Thread(target=self.exec_command).start()
            
@@ -103,7 +118,7 @@ class Ui(tk.Tk):
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] and self.BoxClientFiles.curselection():
                 self.client.upload(self.BoxClientFiles.get(self.BoxClientFiles.curselection()))
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[2]:
-                self.client.start_client()
+                self.client.start_client(self.serveraddress.get())
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[3]:
                 self.client.close_client()
             self.clear_boxes_selections()

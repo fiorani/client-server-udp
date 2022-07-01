@@ -166,9 +166,10 @@ class Client:
     def status(self):
         return 'procedure state '+self.perc+'% completed client state '+self.state
       
-    def start_client(self):
+    def start_client(self,server_address):
         print('starting client')
         self.state='on'
+        self.server_address=(server_address,self.server_address[1])
         self.sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         
         
@@ -182,6 +183,6 @@ class Client:
             self.state='error'
         
 if __name__ == '__main__':
-    client=Client('localhost',10000)
+    client=Client('',10000)
     threading.Thread(target=Ui,args=(client,)).start()
     
