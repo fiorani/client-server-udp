@@ -1,10 +1,8 @@
 import socket as sk
-from socket import error as sock_err
 import time
 import struct
 import os
 import math
-import random
 import threading
 import utilities as ut
 from serverMenu import Ui
@@ -52,14 +50,12 @@ class Server:
         self.lock.release()  
      
     def get_self_files(self):
-        listToStr = ''.join([(str(directory) + '\n') for directory in os.listdir(self.path)])
-        print('file ' ,listToStr)
-        return listToStr
+        return ut.get_files_as_string(self.path)
         
     def get_files(self, address):
         self.sock.settimeout(self.timeoutLimit)
-        print('invio al client  ' ,self.get_self_files())
-        self.send(self.sock,address,SegmentFactory.getListOfFilesSegment(self.get_self_files()))
+        print('sending to client  ' ,self.get_self_files())
+        self.send(self.sock,address,SegmentFactory.getServerFilesSegment(self.get_self_files()))
         self.sock.settimeout(None)
         
     def upload(self,filename,address):
@@ -72,13 +68,13 @@ class Server:
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         sock.bind(server_address)
         sock.settimeout(self.timeoutLimit)        
-        print('invio al client  ' ,filename)
+        print('sending to client  ' ,filename)
         count=0
         tries=0
         with open(os.path.join(self.path, filename), 'rb') as file:
             chunk= file.read(4096*2)
             self.send(sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
-            print('inviato pacchetto ',count)
+            print('sent packet ',count)
             count+=1
             while True:
                 try:
@@ -88,22 +84,22 @@ class Server:
                     #else:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op==OPType.NACK.value:
-                        print('qualche errore è successo pacchetto',count)
+                        print('an error occurred on packet ',count)
                         self.send(self.sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
                     elif count==tot_packs:
-                        print('inviati ',count,' su ',tot_packs)
+                        print('sent ',count,' out of ',tot_packs)
                         break  
                     elif op==OPType.ACK.value:
                         chunk= file.read(4096*2)
                         self.send(self.sock,address,SegmentFactory.getUploadChunkSegment(count, chunk))
-                        print('inviato pacchetto ',count)
+                        print('sent packet ',count)
                         count+=1
                         tries=0
                 except sk.timeout:
-                    print('timeout pacchetto ',count)
+                    print('timeout packet ',count)
                     tries+=1
                     if(tries==5):
-                        print('upload fallito ')
+                        print('failed upload ')
                         break
                     
         self.send(sock,address,SegmentFactory.getCloseConnectionSegment())
@@ -120,7 +116,7 @@ class Server:
         sock = sk.socket(sk.AF_INET, sk.SOCK_DGRAM)
         sock.bind(server_address)
         sock.settimeout(self.timeoutLimit)
-        print('scarico dal client',filename)
+        print('downloading from client ',filename)
         count = 0
         tries=0
         with open(os.path.join(self.path, filename), 'wb') as file:
@@ -128,24 +124,24 @@ class Server:
                 try:
                     data,address,checksum,op,c,p,checksum_correct = self.rcv(sock)
                     if op is OPType.CLOSE_CONNECTION.value :
-                        print('arrivati ', count, ' su ', tot_packs)
+                        print('arrived ', count, ' out of ', tot_packs)
                         sock.settimeout(None)
                         break
                     elif checksum_correct != checksum or count != c:
-                        print('qualche errore pacchetto ',count,'ricevuto pacchetto ',c)
+                        print('an error occurred on packet ',count,'received packet ',c)
                         self.send(sock,address, SegmentFactory.getNACKSegment(count))
                     else:
-                        print('ricevuto pacchetto ',count)
+                        print('received packet ',count)
                         self.send(sock,address,SegmentFactory.getACKSegment(count))
                         file.write(data)
                         count += 1 
                         tries=0
                 except sk.timeout:
-                    print('timeout pacchetto ',count)
+                    print('timeout packet ',count)
                     self.send(sock,address, SegmentFactory.getNACKSegment(count))
                     tries+=1
                     if(tries==5):
-                        print('download fallito ')
+                        print('failed download ')
                         file.close()
                         os.remove(os.path.join(self.path, filename))
                         break
@@ -170,17 +166,15 @@ class Server:
         
             while True:    
                 self.sock.settimeout(None)
-                print('aspetto')
+                print('waiting')
                 data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
                 if op==OPType.UPLOAD.value:
-                    #server.upload(data.decode('utf8'),address)
-                    threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
+                    threading.Thread(target=self.download, args=(data.decode('utf8'),address,c,)).start()
                 elif op==OPType.GET_SERVER_FILES.value:
                     print(address)
                     self.get_files(address)
                 elif op==OPType.DOWNLOAD.value:
-                    threading.Thread(target=self.download, args=(data.decode('utf8'),address,c,)).start()
-                    #self.download(data.decode('utf8'),address)
+                    threading.Thread(target=self.upload, args=(data.decode('utf8'),address,)).start()
                 
             
     
