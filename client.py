@@ -130,8 +130,8 @@ class Client:
                             print('received packet ',count)
                             self.send(self.sock,server_address,SegmentFactory.getACKSegment(count))
                             file.write(data)
-                            count += 1
                             self.perc=str(int((count*100)/tot_packs))
+                            count += 1
                             tries=0
                     except sk.timeout:
                         self.state='timeout'
