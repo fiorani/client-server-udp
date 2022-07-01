@@ -51,6 +51,7 @@ class Client:
             else:
                 return 'try again'
         except sock_err:
+            print('failed get files ')
             self.state='error'
             return 'try again'
       
@@ -97,6 +98,7 @@ class Client:
             self.send(self.sock,server_address,SegmentFactory.getCloseConnectionSegment())
             self.sock.settimeout(None)
         except sock_err:
+            print('failed upload ')
             self.state='failed upload'
     
     def download(self,filename):
@@ -145,6 +147,7 @@ class Client:
                 self.sock.settimeout(None)
         except sock_err:
             os.remove(os.path.join(self.path, filename))
+            print('failed download ')
             self.state='failed download'
     
     def status(self):

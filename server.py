@@ -61,6 +61,7 @@ class Server:
             self.send(self.sock,address,SegmentFactory.getServerFilesSegment(self.get_self_files()))
             self.sock.settimeout(None)
         except sock_err:
+            print('failed get files ')
             self.state='error'
         
     def upload(self,filename,address):
@@ -115,6 +116,7 @@ class Server:
             sock.settimeout(None)
             sock.close()
             self.release_port(port)
+            print('failed upload ')
             self.state='failed upload'
     
     def download(self,filename,address,tot_packs):
@@ -169,6 +171,7 @@ class Server:
             sock.settimeout(None)
             sock.close()
             self.release_port(port)
+            print('failed download ')
             self.state='failed download'
       
     def status(self):
