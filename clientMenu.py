@@ -5,10 +5,8 @@ import threading
 class Ui(tk.Tk):
     
     def __init__(self, client):
-        #setting title
         super().__init__()
         self.title("Client")
-        #setting window size
         self.width=883
         self.height=566
         self.client=client
@@ -20,20 +18,18 @@ class Ui(tk.Tk):
         
         self.operations = ("Download file from the server", "Upload file onto the server","start client", "Close connection with the server")
         
-        self.LabelFileServer=self.setup_label(10, 10, "File presenti sul server")
+        self.LabelFileServer=self.setup_label(10, 10, "Server files")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
-        self.LabelOp=self.setup_label(300, 10, "Seleziona l'operazione")            
+        self.LabelOp=self.setup_label(300, 10, "Select the procedure")            
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.LabelFileClient=self.setup_label(590, 10, "File presenti sul pc")
+        self.LabelFileClient=self.setup_label(590, 10, "Client files")
         self.BoxClientFiles=self.setup_box(590, 40, 282, 225)
         
-        #self.EseguiBtn=self.setup_btn(400, 390, 70, 25, "Esegui", lambda: self.Esegui_command(client))
-        self.EseguiBtn=self.setup_btn(350, 390,  "Esegui", lambda: self.run_threaded_command())
-        self.RefreshBtn=self.setup_btn(450, 390, "Aggiorna", lambda: self.refresh_boxes())
-        #threading.Thread(target=self.update, args = (client, )).start()
+        self.EseguiBtn=self.setup_btn(350, 390,  "Exec", lambda: self.run_threaded_command())
+        self.RefreshBtn=self.setup_btn(450, 390, "Update", lambda: self.refresh_boxes())
         
         self.Labelstatus=self.setup_label(10, 350, '')
         self.Labelstatus.after(100, self.update_label_status)
@@ -90,8 +86,8 @@ class Ui(tk.Tk):
         errDialog.title("Error")
         errDialog.geometry("200x100")
         errDialog.resizable(width=False, height=False)
-        tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
-        tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
+        tk.Label(errDialog, text = "Error, Choose a procedure first").pack()
+        tk.Button(errDialog, text = "close", command = errDialog.destroy).pack()
         
     def refresh_boxes(self):
         self.box_setArguments(self.BoxServerFiles, list(self.client.get_files_from_server().split("\n")))

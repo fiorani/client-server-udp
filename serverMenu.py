@@ -1,15 +1,11 @@
 import tkinter as tk
 import tkinter.font as tkFont
-import threading 
-
 
 class Ui(tk.Tk):
     
     def __init__(self,server):
         super().__init__()
-        #setting title
         self.title("server")
-        #setting window size
         self.width=883
         self.height=566
         self.server=server
@@ -20,17 +16,17 @@ class Ui(tk.Tk):
         self.resizable(width=False, height=False)
         self.operations = ("start server", "stop server")
         
-        self.LabelFileServer=self.setup_label(10, 10, "File presenti su server")
+        self.LabelFileServer=self.setup_label(10, 10, "Server files")
         self.BoxServerFiles=self.setup_box(10, 40, 282, 225)
         
-        self.LabelOp=self.setup_label(300, 10, "Seleziona l'operazione")            
+        self.LabelOp=self.setup_label(300, 10, "Select the procedure")            
         self.OperationBox=self.setup_box(300, 40, 282, 225)
         self.box_setArguments(self.OperationBox, self.operations)
         
-        self.RefreshBtn=self.setup_btn(450, 390, "Aggiorna", lambda: self.refresh_boxes())
-        self.EseguiBtn=self.setup_btn(350, 390, "Esegui", lambda: self.exec_command())
+        self.RefreshBtn=self.setup_btn(450, 390, "Update", lambda: self.refresh_boxes())
+        self.EseguiBtn=self.setup_btn(350, 390, "Exec", lambda: self.exec_command())
         
-        self.Labelstatus=self.setup_label(350, 350, 'spento')  
+        self.Labelstatus=self.setup_label(350, 350, 'off')  
         
         self.mainloop()
         
@@ -80,8 +76,8 @@ class Ui(tk.Tk):
         errDialog.title("Error")
         errDialog.geometry("200x100")
         errDialog.resizable(width=False, height=False)
-        tk.Label(errDialog, text = "Errore, seleziona un'operazione").pack()
-        tk.Button(errDialog, text = "Chiudi", command = errDialog.destroy).pack()
+        tk.Label(errDialog, text = "Error, Choose a procedure first").pack()
+        tk.Button(errDialog, text = "Close", command = errDialog.destroy).pack()
     
     def refresh_boxes(self):
         self.box_setArguments(self.BoxServerFiles, list(self.server.get_self_files().split("\n")))
@@ -89,10 +85,10 @@ class Ui(tk.Tk):
     def exec_command(self):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
-                self.Labelstatus.configure(text='acceso')
+                self.Labelstatus.configure(text='on')
                 self.server.start_server()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
-                self.Labelstatus.configure(text='spento')
+                self.Labelstatus.configure(text='off')
                 self.server.close_server()
             self.clear_boxes_selections()
         else:
