@@ -85,6 +85,7 @@ class Ui(tk.Tk):
         self.box_setArguments(self.BoxServerFiles, list(self.server.get_self_files().split("\n")))
     
     def exec_command(self):
+        self.server.state=''
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
                 self.server.start_server()

@@ -96,6 +96,7 @@ class Ui(tk.Tk):
         self.box_setArguments(self.BoxClientFiles, list(self.client.get_self_files().split("\n")))
     
     def exec_command(self):
+        self.client.state=''
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0] and self.BoxServerFiles.curselection():
                 self.client.download(self.BoxServerFiles.get(self.BoxServerFiles.curselection()))

@@ -19,7 +19,7 @@ class Client:
        self.perc='0'
        self.sleep=0.01
        self.directoryName='file_client'
-       self.state='off'
+       self.state=''
        ut.create_directory(self.directoryName)
        self.path = os.path.join(os.getcwd(), self.directoryName)
     
@@ -62,12 +62,13 @@ class Client:
             tot_packs = math.ceil(os.path.getsize(os.path.join(self.path, filename))/(4096*2))
             self.send(self.sock,self.server_address, SegmentFactory.getUploadToServerRequestSegment(filename, tot_packs))
             data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
-            port=p
-            server_address=(self.server_address[0],port)
-            print('address ',server_address)
-            count=0
-            tries=0
-            with open(os.path.join(self.path, filename), 'rb') as file:
+            file= open(os.path.join(self.path, filename), 'rb') 
+            if OPType.BEGIN_CONNECTION.value==op:
+                port=p
+                server_address=(self.server_address[0],port)
+                print('address ',server_address)
+                count=0
+                tries=0
                 chunk= file.read(4096*2)
                 print('sent packet ',count)
                 while True:
@@ -95,11 +96,16 @@ class Client:
                             self.state='failed upload'
                             print('failed upload ')
                             break
-            self.send(self.sock,server_address,SegmentFactory.getCloseConnectionSegment())
-            self.sock.settimeout(None)
+            else:
+                print('failed upload ')
+                self.state='failed upload'
         except sock_err:
             print('failed upload ')
             self.state='failed upload'
+        finally:
+            self.send(self.sock,server_address,SegmentFactory.getCloseConnectionSegment())
+            file.close()
+            self.sock.settimeout(None)
     
     def download(self,filename):
         try:
@@ -107,13 +113,14 @@ class Client:
             print('sending filename to the server ',filename)
             self.send(self.sock,self.server_address, SegmentFactory.getDownloadToClientRequestSegment(filename))
             data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
-            tot_packs=c
-            port=p
-            server_address=(self.server_address[0],port)
-            print('address ',server_address)
-            count = 0
-            tries=0
-            with open(os.path.join(self.path, filename), 'wb') as file:
+            if OPType.BEGIN_CONNECTION.value==op:
+                tot_packs=c
+                port=p
+                server_address=(self.server_address[0],port)
+                print('address ',server_address)
+                count = 0
+                tries=0
+                file=open(os.path.join(self.path, filename), 'wb')
                 while True:
                     try:
                         data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
@@ -144,11 +151,17 @@ class Client:
                             file.close()
                             os.remove(os.path.join(self.path, filename))
                             break
-                self.sock.settimeout(None)
+                file.close()
+            else:
+              print('failed download ')
+              self.state='failed download'  
         except sock_err:
+            file.close()
             os.remove(os.path.join(self.path, filename))
             print('failed download ')
             self.state='failed download'
+        finally:
+            self.sock.settimeout(None)
     
     def status(self):
         return 'procedure state '+self.perc+'% completed client state '+self.state
