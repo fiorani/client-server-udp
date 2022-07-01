@@ -17,7 +17,7 @@ class Client:
        self.timeoutLimit = 6
        self.buffer=4096*4
        self.perc='0'
-       self.sleep=0.01
+       self.sleep=0.001
        self.directoryName='file_client'
        self.state=''
        ut.create_directory(self.directoryName)
@@ -92,7 +92,7 @@ class Client:
                         self.state='timeout'
                         print('packet timeout',count)
                         tries+=1
-                        if(tries==5):
+                        if(tries==3):
                             self.state='failed upload'
                             print('failed upload ')
                             break
@@ -145,7 +145,7 @@ class Client:
                         print('timeout packet ',count)
                         self.send(self.sock,server_address,SegmentFactory.getNACKSegment(count))
                         tries+=1
-                        if(tries==5):
+                        if(tries==3):
                             self.state='failed download'
                             print('failed download ')
                             file.close()

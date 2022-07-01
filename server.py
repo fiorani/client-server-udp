@@ -16,7 +16,7 @@ class Server:
        self.server_address=(server_address,port)
        self.timeoutLimit = 6
        self.buffer=4096*4
-       self.sleep=0.01
+       self.sleep=0.001
        self.state=''
        self.lock = threading.Lock()
        self.directoryName='file_server'
@@ -103,7 +103,7 @@ class Server:
                     print('timeout packet ',count)
                     self.state='timeout'
                     tries+=1
-                    if(tries==5):
+                    if(tries==3):
                         print('failed upload ')
                         self.state='failed upload'
                         break
@@ -156,7 +156,7 @@ class Server:
                     self.state='timeout'
                     self.send(sock,address, SegmentFactory.getNACKSegment(count))
                     tries+=1
-                    if(tries==5):
+                    if(tries==3):
                         print('failed download ')
                         self.state='failed download'
                         file.close()
