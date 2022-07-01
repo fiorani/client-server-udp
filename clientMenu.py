@@ -33,6 +33,8 @@ class Ui(tk.Tk):
         
         self.Labelstatus=self.setup_label(10, 350, '')
         self.Labelstatus.after(100, self.update_label_status)
+        
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.mainloop()
         
         
@@ -110,6 +112,9 @@ class Ui(tk.Tk):
     def update_label_status(self):
         self.Labelstatus.configure(text=self.client.status())
         self.Labelstatus.after(100, self.update_label_status)
+        
+    def on_closing(self):
+        self.destroy()
         
 
     

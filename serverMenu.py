@@ -26,8 +26,10 @@ class Ui(tk.Tk):
         self.RefreshBtn=self.setup_btn(450, 390, "Update", lambda: self.refresh_boxes())
         self.EseguiBtn=self.setup_btn(350, 390, "Exec", lambda: self.exec_command())
         
-        self.Labelstatus=self.setup_label(350, 350, 'off')  
+        self.Labelstatus=self.setup_label(10, 350, '')
+        self.Labelstatus.after(100, self.update_label_status)
         
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.mainloop()
         
     def setup_box(self, xPlacement, yPlacement, boxWidth, boxHeight):
@@ -85,12 +87,16 @@ class Ui(tk.Tk):
     def exec_command(self):
         if self.OperationBox.curselection():
             if self.OperationBox.get(self.OperationBox.curselection()) == self.operations[0]:
-                self.Labelstatus.configure(text='on')
                 self.server.start_server()
             elif self.OperationBox.get(self.OperationBox.curselection()) == self.operations[1] :
-                self.Labelstatus.configure(text='off')
                 self.server.close_server()
             self.clear_boxes_selections()
         else:
             self.error_dialog_open()
             
+    def update_label_status(self):
+        self.Labelstatus.configure(text=self.server.status())
+        self.Labelstatus.after(100, self.update_label_status)
+            
+    def on_closing(self):
+        self.destroy()
