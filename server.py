@@ -197,8 +197,8 @@ class Server:
              self.state='error'  
     
     def server_main_loop(self):
-        try:
-            while True:    
+        while True:    
+            try:
                 self.sock.settimeout(None)
                 print('waiting')
                 data,address,checksum,op,c,p,checksum_correct = self.rcv(self.sock)
@@ -209,8 +209,9 @@ class Server:
                 elif op==OPType.GET_SERVER_FILES.value:
                     threading.Thread(target=self.get_files, args=(address,)).start()
                     #self.get_files(address)
-        except sock_err:
-            self.state='error'    
+            except sock_err:
+                self.state='error'
+            
     
 if __name__ == '__main__':
      server=Server('',10000)
