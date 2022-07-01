@@ -112,6 +112,9 @@ class Server:
             sock.close()
             self.release_port(port)
         except sock_err:
+            sock.settimeout(None)
+            sock.close()
+            self.release_port(port)
             self.state='failed upload'
     
     def download(self,filename,address,tot_packs):
@@ -137,8 +140,11 @@ class Server:
                             sock.settimeout(None)
                             break
                         elif checksum_correct != checksum or count != c:
-                            print('an error occurred on packet ',count,'received packet ',c)
-                            self.send(sock,address, SegmentFactory.getNACKSegment(count))
+                            if c<count:
+                                self.send(sock,address,SegmentFactory.getACKSegment(count))
+                            else:
+                                print('an error occurred on packet ',count,'received packet ',c)
+                                self.send(sock,address, SegmentFactory.getNACKSegment(count))
                         else:
                             print('received packet ',count)
                             self.send(sock,address,SegmentFactory.getACKSegment(count))
@@ -160,10 +166,13 @@ class Server:
             sock.close()
             self.release_port(port)
         except sock_err:
+            sock.settimeout(None)
+            sock.close()
+            self.release_port(port)
             self.state='failed download'
       
     def status(self):
-        return 'client state '+self.state
+        return 'server state '+self.state
     
     def start_server(self):
         try:
